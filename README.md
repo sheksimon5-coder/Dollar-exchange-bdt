@@ -1,4 +1,4 @@
-
+<!doctype html>
 <html lang="bn">
 <head>
 <meta charset="utf-8" />
@@ -154,7 +154,7 @@ button.primary{background:#0b75ff;color:#fff;border:none;padding:11px;border-rad
 <input id="uTaka" placeholder="টাকায় মূল্য" readonly />
 
 <select id="uPayment">
-<option value="bKash">sand money </option>
+<option value="bKash">sand many </option>
 <option value="Nagad">cash out </option>
 </select>
 
@@ -250,12 +250,12 @@ button.primary{background:#0b75ff;color:#fff;border:none;padding:11px;border-rad
 <script>
 // Firebase Config
 const firebaseConfig = {
-apiKey: "AIzaSyBUMQNzDO6cRdRHFPYOGOBfApzuaidkw2E",
-authDomain: "dollar-exchange-bdt.firebaseapp.com",
-projectId: "dollar-exchange-bdt",
-storageBucket: "dollar-exchange-bdt.firebasestorage.app",
-messagingSenderId: "666904772438",
-appId: "1:666904772438:web:860c9207c1a1e59a2820f7"
+apiKey: "AIzaSyBqZl4h8v0K5q0J6g4H8k7L9n0m3p2q1r9",
+authDomain: "dollar-exchange-app.firebaseapp.com",
+projectId: "dollar-exchange-app",
+storageBucket: "dollar-exchange-app.appspot.com",
+messagingSenderId: "123456789012",
+appId: "1:123456789012:web:abcdef1234567890"
 };
 
 // Initialize Firebase
@@ -269,7 +269,7 @@ const BINANCE_ID = '1188473082';
 // DEFAULT RATES
 let rates = {
 Payeer: 70,
-Binance: 120
+Binance: 20
 };
 
 // ACCOUNT
