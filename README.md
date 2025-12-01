@@ -268,7 +268,7 @@ const BINANCE_ID = '1188473082';
 
 // DEFAULT RATES
 let rates = {
-Payeer: 95,
+Payeer: 70,
 Binance: 120
 };
 
