@@ -148,13 +148,14 @@ button.primary{background:#0b75ff;color:#fff;border:none;padding:11px;border-rad
 <select id="uCurrency" onchange="calc()">
 <option value="Payeer">Payeer</option>
 <option value="Binance">Binance</option>
+<option value="gmail farmer">Binance</option>
 </select>
 
 <input id="uDollar" type="number" placeholder="কত ডলার সেল দিবেন" oninput="calc()" />
 <input id="uTaka" placeholder="টাকায় মূল্য" readonly />
 
 <select id="uPayment">
-<option value="bKash">sand many </option>
+<option value="bKash">sand money </option>
 <option value="Nagad">cash out </option>
 </select>
 
@@ -165,9 +166,6 @@ button.primary{background:#0b75ff;color:#fff;border:none;padding:11px;border-rad
 <option value="">-- মাধ্যমে পেমেন্ট --</option>
 <option value="bKash">bKash</option>
 <option value="Nagad">Nagad</option>
-<option value="Binance">Binance</option>
-<option value="Payeer">Payeer</option>
-<option value="USDT TRC20">USDT TRC20</option>
 </select>
 
 <input id="uTx" placeholder="এই অপশনে কিছু লিখতে হবে না)">
@@ -230,7 +228,7 @@ button.primary{background:#0b75ff;color:#fff;border:none;padding:11px;border-rad
 
 <div id="cBody"></div>
 
-<input id="cTx" placeholder="আপনার Transaction ID লিখুন (যদি থাকে)" />
+<input id="cTx" placeholder="আপনার Transaction ID লিখুন" />
 
 <button class="primary" onclick="confirmOrder()">Confirm Order</button>
 
