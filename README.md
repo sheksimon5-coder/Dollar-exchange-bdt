@@ -1,4 +1,4 @@
-<!doctype html>
+
 <html lang="bn">
 <head>
 <meta charset="utf-8" />
@@ -154,7 +154,7 @@ button.primary{background:#0b75ff;color:#fff;border:none;padding:11px;border-rad
 <input id="uTaka" placeholder="টাকায় মূল্য" readonly />
 
 <select id="uPayment">
-<option value="bKash">sand many </option>
+<option value="bKash">sand money </option>
 <option value="Nagad">cash out </option>
 </select>
 
