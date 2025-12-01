@@ -1,4 +1,4 @@
-<!doctype html>
+
 <html lang="bn">
 <head>
 <meta charset="utf-8" />
@@ -141,7 +141,7 @@ button.primary{background:#0b75ff;color:#fff;border:none;padding:11px;border-rad
 
 <!-- USER AREA -->
 <div id="userArea">
-<h2 style="text-align:center;margin-top:18px">দয়া করে কেউ ট্রানজেকশন আইডি সারা অর্ডার দিবেন না</h2>
+<h2 style="text-align:center;margin-top:18px"></h2>
 
 <div class="card">
 <input id="uName" placeholder="আপনার নাম" />
@@ -170,7 +170,7 @@ button.primary{background:#0b75ff;color:#fff;border:none;padding:11px;border-rad
 <option value="USDT TRC20">USDT TRC20</option>
 </select>
 
-<input id="uTx" placeholder="Transaction ID (যদি থাকে)">
+<input id="uTx" placeholder="এই অপশনে কিছু লিখতে হবে না)">
 
 <button class="primary" onclick="placeOrder()">অর্ডার দিন</button>
 </div>
