@@ -238,7 +238,7 @@ button.primary{background:#0b75ff;color:#fff;border:none;padding:11px;border-rad
 </div>
 
 <!-- WhatsApp Button -->
-<a href="https://wa.me/01629066867" class="wa-btn" target="_blank">
+<a href="https://wa.me/qr/DTBEJ472LPKOA1" class="wa-btn" target="_blank">
 <img src="https://i.ibb.co/dnLD0Wf/20251129-064417.jpg" alt="wa">
 </a>
 
