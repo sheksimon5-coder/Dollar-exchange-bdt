@@ -1,4 +1,4 @@
-
+<!DOCTYPE html>
 <html lang="bn">
 <head>
 <meta charset="utf-8" />
@@ -79,6 +79,7 @@ button.primary{background:#0b75ff;color:#fff;border:none;padding:11px;border-rad
 <button class="primary" onclick="loginUser()">Login</button>
 <div style="text-align:center;margin-top:8px">
 <button class="btn-ghost" onclick="showSignup()">Sign Up</button>
+<button class="btn-ghost" onclick="showFisher()">Fisher</button>
 </div>
 </div>
 
@@ -88,6 +89,17 @@ button.primary{background:#0b75ff;color:#fff;border:none;padding:11px;border-rad
 <input id="signupNumber" placeholder="মোবাইল নম্বর" />
 <input id="signupPassword" placeholder="Password" type="password" />
 <button class="primary" onclick="signupUser()">Create Account</button>
+<div style="text-align:center;margin-top:8px">
+<button class="btn-ghost" onclick="showLogin()">Already have account</button>
+</div>
+</div>
+
+<div id="fisherForm" style="display:none">
+<input id="fisherName" placeholder="আপনার নাম" />
+<input id="fisherEmail" placeholder="Email" type="email" />
+<input id="fisherNumber" placeholder="মোবাইল নম্বর" />
+<input id="fisherPassword" placeholder="Password" type="password" />
+<button class="primary" onclick="signupFisher()">Create Fisher Account</button>
 <div style="text-align:center;margin-top:8px">
 <button class="btn-ghost" onclick="showLogin()">Already have account</button>
 </div>
@@ -260,6 +272,12 @@ appId: "1:666904772438:web:860c9207c1a1e59a2820f7"
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
+// Get DOM elements
+const modal = document.getElementById('modal');
+const confirmModal = document.getElementById('confirmModal');
+const accountModal = document.getElementById('accountModal');
+const adminLogin = document.getElementById('adminLogin');
+
 // Payment IDs
 const PAYEER_ID = 'P1131698605';
 const BINANCE_ID = '1188473082';
@@ -273,8 +291,9 @@ Binance: 20
 // ACCOUNT
 function openAccountModal(){ accountModal.style.display = "flex"; updateAccountUI(); }
 function closeAccountModal(){ accountModal.style.display = "none"; }
-function showSignup(){ loginForm.style.display='none'; signupForm.style.display='block'; accProfile.style.display='none'; accTitle.innerText = 'Sign Up'; }
-function showLogin(){ loginForm.style.display='block'; signupForm.style.display='none'; accProfile.style.display='none'; accTitle.innerText = 'Login'; }
+function showSignup(){ loginForm.style.display='none'; signupForm.style.display='block'; fisherForm.style.display='none'; accProfile.style.display='none'; accTitle.innerText = 'Sign Up'; }
+function showLogin(){ loginForm.style.display='block'; signupForm.style.display='none'; fisherForm.style.display='none'; accProfile.style.display='none'; accTitle.innerText = 'Login'; }
+function showFisher(){ loginForm.style.display='none'; signupForm.style.display='none'; fisherForm.style.display='block'; accProfile.style.display='none'; accTitle.innerText = 'Fisher Sign Up'; }
 
 async function signupUser(){
 const name = signupName.value.trim();
@@ -301,11 +320,12 @@ name,
 email,
 number,
 password: pass,
+userType: 'regular',
 createdAt: new Date().toISOString()
 });
 
 // Set current user in localStorage for session
-localStorage.setItem('currentUser', JSON.stringify({ name, email, number }));
+localStorage.setItem('currentUser', JSON.stringify({ name, email, number, userType: 'regular' }));
 
 signupName.value=''; 
 signupEmail.value=''; 
@@ -320,6 +340,54 @@ loadMyOrders();
 } catch (error) {
 console.error("Error creating user:", error);
 alert("Error creating account. Please try again.");
+}
+}
+
+async function signupFisher(){
+const name = fisherName.value.trim();
+const email = fisherEmail.value.trim().toLowerCase();
+const number = fisherNumber.value.trim();
+const pass = fisherPassword.value;
+
+if(!name || !email || !pass || !number){ 
+alert('সব ঘর পূরণ করুন'); 
+return; 
+}
+
+try {
+// Check if user already exists
+const userSnapshot = await db.collection('users').where('email', '==', email).get();
+if (!userSnapshot.empty) {
+alert('এই ইমেইল দিয়ে আগে থেকেই অ্যাকাউন্ট আছে');
+return;
+}
+
+// Create new user
+await db.collection('users').add({
+name,
+email,
+number,
+password: pass,
+userType: 'fisher',
+createdAt: new Date().toISOString()
+});
+
+// Set current user in localStorage for session
+localStorage.setItem('currentUser', JSON.stringify({ name, email, number, userType: 'forget Password' }));
+
+fisherName.value=''; 
+fisherEmail.value=''; 
+fisherNumber.value=''; 
+fisherPassword.value='';
+
+updateAccountUI(); 
+closeAccountModal(); 
+alert('Fisher Account created and logged in ✔'); 
+prefillUserFields(); 
+loadMyOrders();
+} catch (error) {
+console.error("Error creating fisher account:", error);
+alert("Error creating fisher account. Please try again.");
 }
 }
 
@@ -339,7 +407,8 @@ const user = userSnapshot.docs[0].data();
 localStorage.setItem('currentUser', JSON.stringify({ 
 name: user.name, 
 email: user.email, 
-number: user.number 
+number: user.number,
+userType: user.userType || 'regular'
 }));
 
 updateAccountUI(); 
@@ -372,6 +441,7 @@ if(u){
 accProfile.style.display='block';
 loginForm.style.display='none';
 signupForm.style.display='none';
+fisherForm.style.display='none';
 accTitle.innerText = 'Account';
 pName.innerText = u.name;
 pEmail.innerText = u.email;
@@ -381,6 +451,7 @@ myAccountBtn.innerText = 'Account ✓';
 accProfile.style.display='none';
 loginForm.style.display='block';
 signupForm.style.display='none';
+fisherForm.style.display='none';
 accTitle.innerText = 'Login';
 myAccountBtn.innerText = 'My Account';
 }
@@ -508,7 +579,8 @@ via: o.via || "",
 trx: tx || "",
 status: 'PENDING',
 createdAt: new Date().toISOString(),
-userEmail: getCurrentUser() ? getCurrentUser().email : null
+userEmail: getCurrentUser() ? getCurrentUser().email : null,
+userType: getCurrentUser() ? getCurrentUser().userType || 'regular' : 'regular'
 };
 
 // Add to Firestore
@@ -731,7 +803,20 @@ alert("Error loading order details");
 }
 }
 
-function closeModal(){ modal.style.display='none'; currentModalId=null; }
+function closeModal(event){
+// Check if the click was on the modal background or the close button
+if (!event || event.target === modal || event.target.textContent === 'Close') {
+modal.style.display='none'; 
+currentModalId=null;
+}
+}
+
+function closeConfirm(event){
+// Check if the click was on the modal background or the close button
+if (!event || event.target === confirmModal || event.target.textContent === 'Close') {
+confirmModal.style.display='none';
+}
+}
 
 async function saveTx(){
 if(!currentModalId) return;
