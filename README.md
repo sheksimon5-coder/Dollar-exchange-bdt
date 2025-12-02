@@ -178,6 +178,7 @@ button.success{background:#16a34a;color:#fff;border:none;padding:11px;border-rad
 
 <!-- NEW: মাধ্যম (via) এবং TX ইনপুট (Optional - ইউজার যদি TX দিতে চায়) -->
 <select id="uVia"
+<option value="">--কিসের মাধ্যমে টাকা নিবেন--</option>
 <option value="bKash">bKash</option>
 <option value="Nagad">Nagad</option>
 </select>
