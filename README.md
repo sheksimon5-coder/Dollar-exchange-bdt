@@ -183,6 +183,7 @@ button.success{background:#16a34a;color:#fff;border:none;padding:11px;border-rad
 <option value="Nagad">Nagad</option>
 </select>
 
+<input id="uTx" placeholder="এই অপশনে কিছু লিখতে হবে না)">
 
 <button class="primary" onclick="placeOrder()">অর্ডার দিন</button>
 </div>
