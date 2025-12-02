@@ -80,6 +80,7 @@ button.primary{background:#0b75ff;color:#fff;border:none;padding:11px;border-rad
 <div style="text-align:center;margin-top:8px">
 <button class="btn-ghost" onclick="showSignup()">Sign Up</button>
 <button class="btn-ghost" onclick="showFisher()">Fisher</button>
+<button class="btn-ghost" onclick="showForgotPassword()">Forget Password</button>
 </div>
 </div>
 
@@ -102,6 +103,21 @@ button.primary{background:#0b75ff;color:#fff;border:none;padding:11px;border-rad
 <button class="primary" onclick="signupFisher()">Create Fisher Account</button>
 <div style="text-align:center;margin-top:8px">
 <button class="btn-ghost" onclick="showLogin()">Already have account</button>
+</div>
+</div>
+
+<div id="forgotPasswordForm" style="display:none">
+<p style="margin-bottom:10px">Enter your email address to reset your password:</p>
+<input id="forgotEmail" placeholder="Email" type="email" />
+<button class="primary" onclick="sendPasswordReset()">Send Reset Code</button>
+<div id="resetCodeSection" style="display:none;margin-top:10px">
+<p style="margin-bottom:10px">Enter the verification code sent to your email:</p>
+<input id="resetCode" placeholder="Verification Code" />
+<input id="newPassword" placeholder="New Password" type="password" />
+<button class="primary" onclick="resetPassword()">Reset Password</button>
+</div>
+<div style="text-align:center;margin-top:8px">
+<button class="btn-ghost" onclick="showLogin()">Back to Login</button>
 </div>
 </div>
 </div>
@@ -291,9 +307,10 @@ Binance: 20
 // ACCOUNT
 function openAccountModal(){ accountModal.style.display = "flex"; updateAccountUI(); }
 function closeAccountModal(){ accountModal.style.display = "none"; }
-function showSignup(){ loginForm.style.display='none'; signupForm.style.display='block'; fisherForm.style.display='none'; accProfile.style.display='none'; accTitle.innerText = 'Sign Up'; }
-function showLogin(){ loginForm.style.display='block'; signupForm.style.display='none'; fisherForm.style.display='none'; accProfile.style.display='none'; accTitle.innerText = 'Login'; }
-function showFisher(){ loginForm.style.display='none'; signupForm.style.display='none'; fisherForm.style.display='block'; accProfile.style.display='none'; accTitle.innerText = 'Fisher Sign Up'; }
+function showSignup(){ loginForm.style.display='none'; signupForm.style.display='block'; fisherForm.style.display='none'; forgotPasswordForm.style.display='none'; accProfile.style.display='none'; accTitle.innerText = 'Sign Up'; }
+function showLogin(){ loginForm.style.display='block'; signupForm.style.display='none'; fisherForm.style.display='none'; forgotPasswordForm.style.display='none'; accProfile.style.display='none'; accTitle.innerText = 'Login'; }
+function showFisher(){ loginForm.style.display='none'; signupForm.style.display='none'; fisherForm.style.display='block'; forgotPasswordForm.style.display='none'; accProfile.style.display='none'; accTitle.innerText = 'Fisher Sign Up'; }
+function showForgotPassword(){ loginForm.style.display='none'; signupForm.style.display='none'; fisherForm.style.display='none'; forgotPasswordForm.style.display='block'; accProfile.style.display='none'; accTitle.innerText = 'Reset Password'; }
 
 async function signupUser(){
 const name = signupName.value.trim();
@@ -373,7 +390,7 @@ createdAt: new Date().toISOString()
 });
 
 // Set current user in localStorage for session
-localStorage.setItem('currentUser', JSON.stringify({ name, email, number, userType: 'forget Password' }));
+localStorage.setItem('currentUser', JSON.stringify({ name, email, number, userType: 'fisher' }));
 
 fisherName.value=''; 
 fisherEmail.value=''; 
@@ -442,6 +459,7 @@ accProfile.style.display='block';
 loginForm.style.display='none';
 signupForm.style.display='none';
 fisherForm.style.display='none';
+forgotPasswordForm.style.display='none';
 accTitle.innerText = 'Account';
 pName.innerText = u.name;
 pEmail.innerText = u.email;
@@ -452,6 +470,7 @@ accProfile.style.display='none';
 loginForm.style.display='block';
 signupForm.style.display='none';
 fisherForm.style.display='none';
+forgotPasswordForm.style.display='none';
 accTitle.innerText = 'Login';
 myAccountBtn.innerText = 'My Account';
 }
@@ -462,6 +481,99 @@ const u = getCurrentUser();
 if(u){
 uName.value = u.name || '';
 uNumber.value = u.number || '';
+}
+}
+
+// Forget Password functionality
+async function sendPasswordReset() {
+const email = forgotEmail.value.trim().toLowerCase();
+if (!email) {
+alert('Please enter your email address');
+return;
+}
+
+try {
+// Check if user exists
+const userSnapshot = await db.collection('users').where('email', '==', email).get();
+if (userSnapshot.empty) {
+alert('No account found with this email address');
+return;
+}
+
+// Generate a 6-digit reset code
+const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+const expiryTime = new Date(Date.now() + 3600000).toISOString(); // Code expires in 1 hour
+
+// Store the reset code in Firestore
+await db.collection('passwordResets').add({
+email,
+resetCode,
+expiryTime,
+used: false
+});
+
+// Show the reset code section
+document.getElementById('resetCodeSection').style.display = 'block';
+alert(`A verification code has been sent to your email. For demo purposes, your code is: ${resetCode}`);
+} catch (error) {
+console.error("Error sending password reset:", error);
+alert("Error sending password reset. Please try again.");
+}
+}
+
+async function resetPassword() {
+const email = forgotEmail.value.trim().toLowerCase();
+const code = resetCode.value.trim();
+const newPassword = newPassword.value;
+
+if (!email || !code || !newPassword) {
+alert('Please fill all fields');
+return;
+}
+
+try {
+// Find the reset code in Firestore
+const resetSnapshot = await db.collection('passwordResets')
+.where('email', '==', email)
+.where('resetCode', '==', code)
+.where('used', '==', false)
+.get();
+
+if (resetSnapshot.empty) {
+alert('Invalid or expired verification code');
+return;
+}
+
+const resetDoc = resetSnapshot.docs[0];
+const resetData = resetDoc.data();
+
+// Check if the code has expired
+if (new Date() > new Date(resetData.expiryTime)) {
+alert('Verification code has expired');
+return;
+}
+
+// Mark the reset code as used
+await db.collection('passwordResets').doc(resetDoc.id).update({ used: true });
+
+// Find the user and update their password
+const userSnapshot = await db.collection('users').where('email', '==', email).get();
+if (!userSnapshot.empty) {
+const userDoc = userSnapshot.docs[0];
+await db.collection('users').doc(userDoc.id).update({ password: newPassword });
+}
+
+// Clear the form
+forgotEmail.value = '';
+resetCode.value = '';
+newPassword.value = '';
+document.getElementById('resetCodeSection').style.display = 'none';
+
+alert('Password reset successful! You can now login with your new password.');
+showLogin();
+} catch (error) {
+console.error("Error resetting password:", error);
+alert("Error resetting password. Please try again.");
 }
 }
 
