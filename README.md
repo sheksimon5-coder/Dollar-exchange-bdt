@@ -166,7 +166,7 @@ button.success{background:#16a34a;color:#fff;border:none;padding:11px;border-rad
 <!-- Currencies will be dynamically loaded here -->
 </select>
 
-<input id="uDollar" type="number" placeholder="কত ডলার সেল দিবেন" oninput="calc()" />
+<input id="uDollar" type="number" placeholder="কত ডলার সেল দিবেন(minimum 1 dollar)" oninput="calc()" />
 <input id="uTaka" placeholder="টাকায় মূল্য" readonly />
 
 <select id="uPayment">
@@ -177,8 +177,7 @@ button.success{background:#16a34a;color:#fff;border:none;padding:11px;border-rad
 <input id="uNumber" placeholder="আপনার পেমেন্ট নাম্বার " />
 
 <!-- NEW: মাধ্যম (via) এবং TX ইনপুট (Optional - ইউজার যদি TX দিতে চায়) -->
-<select id="uVia">
-<option value="">-- মাধ্যমে পেমেন্ট --</option>
+<select id="uVia"
 <option value="bKash">bKash</option>
 <option value="Nagad">Nagad</option>
 </select>
