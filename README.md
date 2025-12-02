@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Dollar Exchange - Updated</title>
+<title>Dollar Exchange - User Panel</title>
 <style>
 body{font-family: sans-serif;background:#f2f5f8;margin:0;color:#111}
 .topbar{background:#fff;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 6px rgba(0,0,0,0.06)}
@@ -22,6 +22,8 @@ body{font-family: sans-serif;background:#f2f5f8;margin:0;color:#111}
 
 input,select,button,textarea{width:100%;padding:10px;margin:8px 0;border-radius:8px;border:1px solid #ddd;font-size:15px}
 button.primary{background:#0b75ff;color:#fff;border:none;padding:11px;border-radius:8px;cursor:pointer}
+button.danger{background:#ef4444;color:#fff;border:none;padding:11px;border-radius:8px;cursor:pointer}
+button.success{background:#16a34a;color:#fff;border:none;padding:11px;border-radius:8px;cursor:pointer}
 
 .order-box{background:#fff;margin:10px;border-radius:10px;padding:12px;box-shadow:0 1px 6px rgba(0,0,0,0.06);display:flex;justify-content:space-between;align-items:center;gap:8px}
 .order-info{flex:1}
@@ -47,9 +49,6 @@ button.primary{background:#0b75ff;color:#fff;border:none;padding:11px;border-rad
 .account-info{display:flex;gap:10px;align-items:center}
 .btn-ghost{background:transparent;border:1px solid #0b75ff;color:#0b75ff;padding:8px 12px;border-radius:8px;cursor:pointer}
 
-.control-row{display:flex;gap:10px}
-.control-row > *{flex:1}
-
 @media (max-width:520px){
 .topbar{padding:8px}
 .blue-head{padding:24px 12px}
@@ -57,16 +56,6 @@ button.primary{background:#0b75ff;color:#fff;border:none;padding:11px;border-rad
 </style>
 </head>
 <body>
-
-<!-- Admin Login (hidden) -->
-<div id="adminLogin" class="modal" style="display:none;">
-<div class="box">
-<h3>Admin Login</h3>
-<input id="adminPass" type="password" placeholder="Enter Password">
-<button class="primary" onclick="checkAdmin()">Login</button>
-<div style="text-align:right;margin-top:8px"><button onclick="adminLogin.style.display='none'">Close</button></div>
-</div>
-</div>
 
 <!-- Account Modal -->
 <div id="accountModal" class="modal" style="display:none;">
@@ -174,10 +163,7 @@ button.primary{background:#0b75ff;color:#fff;border:none;padding:11px;border-rad
 <div class="card">
 <input id="uName" placeholder="আপনার নাম" />
 <select id="uCurrency" onchange="calc()">
-<option value="Payeer">Payeer</option>
-<option value="Binance">Binance</option>
-<option value="Advcash">Advcash</option>
-<option value="gmail farmer">Binance</option>
+<!-- Currencies will be dynamically loaded here -->
 </select>
 
 <input id="uDollar" type="number" placeholder="কত ডলার সেল দিবেন" oninput="calc()" />
@@ -205,33 +191,6 @@ button.primary{background:#0b75ff;color:#fff;border:none;padding:11px;border-rad
 <h3 style="text-align:center;margin-top:8px">📦 আপনার অর্ডারসমূহ</h3>
 <div id="myOrdersContainer" class="card" style="padding:8px;">
 <div id="myOrders"></div>
-</div>
-</div>
-
-<!-- ADMIN AREA -->
-<div id="adminArea" style="display:none;">
-<h2 style="text-align:center;margin-top:18px">🛠 Admin Panel</h2>
-
-<div class="card">
-<h3>💱 Dollar Rate Control</h3>
-
-<label>Payeer Rate (1 USD = ? Tk)</label>
-<input id="ratePayeer" type="number"/>
-
-<label>Binance Rate (1 USD = ? Tk)</label>
-<input id="rateBinance" type="number"/>
-
-<label>Advcash Rate (1 USD = ? Tk)</label>
-<input id="rateAdvcash" type="number"/>
-
-<button class="primary" onclick="saveRates()">💾 Save Rates</button>
-</div>
-
-<div class="card">
-<div style="margin-bottom:10px"><b>Search by user number:</b>
-<input id="adminSearch" placeholder="phone number" oninput="loadAdmin()" />
-</div>
-<div id="adminOrders"></div>
 </div>
 </div>
 
@@ -296,19 +255,13 @@ const db = firebase.firestore();
 const modal = document.getElementById('modal');
 const confirmModal = document.getElementById('confirmModal');
 const accountModal = document.getElementById('accountModal');
-const adminLogin = document.getElementById('adminLogin');
 
-// Payment IDs
-const PAYEER_ID = 'P1131698605';
-const BINANCE_ID = '1188473082';
-const ADVCASH_ID = 'U 1048 5654 4714';
-
-// DEFAULT RATES
-let rates = {
-Payeer: 70,
-Binance: 20,
-Advcash: 60
-};
+// DEFAULT CURRENCIES
+let currencies = [
+{ id: 'Payeer', name: 'Payeer', rate: 70, paymentId: 'P1131698605' },
+{ id: 'Binance', name: 'Binance', rate: 20, paymentId: '1188473082' },
+{ id: 'Advcash', name: 'Advcash', rate: 60, paymentId: 'U 1048 5654 4714' }
+];
 
 // ACCOUNT
 function openAccountModal(){ accountModal.style.display = "flex"; updateAccountUI(); }
@@ -530,7 +483,7 @@ alert("Error sending password reset. Please try again.");
 async function resetPassword() {
 const email = forgotEmail.value.trim().toLowerCase();
 const code = resetCode.value.trim();
-const newPassword = resetNewPassword.value; // Fixed: changed from newPassword to resetNewPassword
+const newPassword = resetNewPassword.value;
 
 if (!email || !code || !newPassword) {
 alert('Please fill all fields');
@@ -572,7 +525,7 @@ await db.collection('users').doc(userDoc.id).update({ password: newPassword });
 // Clear the form
 forgotEmail.value = '';
 resetCode.value = '';
-resetNewPassword.value = ''; // Fixed: changed from newPassword to resetNewPassword
+resetNewPassword.value = '';
 document.getElementById('resetCodeSection').style.display = 'none';
 
 alert('Password reset successful! You can now login with your new password.');
@@ -583,54 +536,34 @@ alert("Error resetting password. Please try again.");
 }
 }
 
-// RATES
-async function loadRates(){
+// CURRENCY MANAGEMENT
+async function loadCurrencies(){
 try {
-const ratesDoc = await db.collection('settings').doc('rates').get();
-if (ratesDoc.exists) {
-rates = ratesDoc.data();
-ratePayeer.value = rates.Payeer;
-rateBinance.value = rates.Binance;
-rateAdvcash.value = rates.Advcash;
-} else {
-// If rates don't exist in Firestore, use default values
-ratePayeer.value = rates.Payeer;
-rateBinance.value = rates.Binance;
-rateAdvcash.value = rates.Advcash;
+const currenciesDoc = await db.collection('settings').doc('currencies').get();
+if (currenciesDoc.exists) {
+currencies = currenciesDoc.data().list || currencies;
 }
 } catch (error) {
-console.error("Error loading rates:", error);
-// Fallback to default values
-ratePayeer.value = rates.Payeer;
-rateBinance.value = rates.Binance;
-rateAdvcash.value = rates.Advcash;
-}
+console.error("Error loading currencies:", error);
 }
 
-async function saveRates(){ 
-try {
-await db.collection('settings').doc('rates').set({
-Payeer: Number(ratePayeer.value),
-Binance: Number(rateBinance.value),
-Advcash: Number(rateAdvcash.value)
+// Update currency dropdown in user form
+const uCurrency = document.getElementById('uCurrency');
+uCurrency.innerHTML = '';
+currencies.forEach(currency => {
+const option = document.createElement('option');
+option.value = currency.id;
+option.textContent = currency.name;
+uCurrency.appendChild(option);
 });
-
-rates.Payeer = Number(ratePayeer.value);
-rates.Binance = Number(rateBinance.value);
-rates.Advcash = Number(rateAdvcash.value);
-
-alert("✔ Dollar Rates Updated");
-} catch (error) {
-console.error("Error saving rates:", error);
-alert("Error updating rates. Please try again.");
-}
 }
 
 // CALC
 function calc(){
 const dollar = Number(uDollar.value) || 0;
-const cur = uCurrency.value;
-const rate = cur === "Payeer" ? rates.Payeer : (cur === "Binance" ? rates.Binance : rates.Advcash);
+const currencyId = uCurrency.value;
+const currency = currencies.find(c => c.id === currencyId);
+const rate = currency ? currency.rate : 0;
 uTaka.value = dollar ? (dollar * rate).toFixed(2) : "";
 }
 
@@ -645,7 +578,9 @@ return;
 
 const name = (uName.value.trim() || current.name);
 const number = (uNumber.value.trim() || current.number);
-const currency = uCurrency.value;
+const currencyId = uCurrency.value;
+const currency = currencies.find(c => c.id === currencyId);
+const currencyName = currency ? currency.name : '';
 const dollar = uDollar.value;
 const taka = uTaka.value;
 const payment = uPayment.value;
@@ -657,34 +592,19 @@ alert('সব ঘর পূরণ করুন');
 return;
 }
 
-window.tempOrder = { name, number, currency, dollar, taka, payment, via, tx };
+window.tempOrder = { name, number, currency: currencyName, currencyId, dollar, taka, payment, via, tx };
+
+// Get all payment IDs for display
+const paymentIds = currencies.map(c => `<div class="id-badge">${c.name} ID: ${c.paymentId}<button style="float:right;padding:4px 10px" onclick="copyText('${c.paymentId}')">Copy</button></div>`).join('<div style="height:6px"></div>');
 
 cBody.innerHTML = `
 <div>নাম: <b>${name}</b></div>
 <div>নম্বার: <b>${number}</b></div>
-<div>কারেন্সি: <b>${currency}</b></div>
+<div>কারেন্সি: <b>${currencyName}</b></div>
 <div>ডলার: <b>${dollar}</b> → টাকা: <b>${taka}</b></div>
 
 <div style="margin-top:10px">পেমেন্ট পাঠানোর আইডি:</div>
-
-<div class="id-badge">
-Payeer ID: ${PAYEER_ID}
-<button style="float:right;padding:4px 10px" onclick="copyText('${PAYEER_ID}')">Copy</button>
-</div>
-
-<div style="height:6px"></div>
-
-<div class="id-badge">
-Binance ID: ${BINANCE_ID}
-<button style="float:right;padding:4px 10px" onclick="copyText('${BINANCE_ID}')">Copy</button>
-</div>
-
-<div style="height:6px"></div>
-
-<div class="id-badge">
-Advcash ID: ${ADVCASH_ID}
-<button style="float:right;padding:4px 10px" onclick="copyText('${ADVCASH_ID}')">Copy</button>
-</div>
+ ${paymentIds}
 `;
 
 cTx.value = tx;
@@ -702,6 +622,7 @@ const newOrder = {
 name: o.name,
 number: o.number,
 currency: o.currency,
+currencyId: o.currencyId,
 dollar: o.dollar,
 taka: o.taka,
 paymentMethod: o.payment,
@@ -820,88 +741,6 @@ myOrders.appendChild(box);
 });
 }
 
-// ADMIN: Load orders for admin view
-async function loadAdmin(){
-try {
-const q = adminSearch.value.trim();
-let ordersQuery = db.collection('orders');
-
-if(q) {
-ordersQuery = ordersQuery.where('number', '==', q);
-}
-
-const snapshot = await ordersQuery.get();
-const orders = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
-
-// Sort by creation date (newest first)
-orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
-adminOrders.innerHTML="";
-
-if(orders.length===0){
-adminOrders.innerHTML='<div class="order-empty">কোন অর্ডার পাওয়া যায়নি</div>';
-return;
-}
-
-orders.forEach(o=>{
-const div=document.createElement('div');
-div.className='order-box';
-
-div.innerHTML=`
-<div style="flex:1">
-<b>${o.name}</b> <span class="small">• ${new Date(o.createdAt).toLocaleString()}</span>
-<div class="small">নম্বর: ${o.number} • ${o.currency} • ${o.dollar} USD → ${o.taka} TK</div>
-<div class="small">মাধ্যম: ${o.via || 'Not given'}</div>
-<div>TXID: <span class="small">${o.trx||'—'}</span></div>
-</div>
-
-<div style="min-width:150px;text-align:right">
-<div><span class="status ${o.status==='Pending'?'pending':o.status==='COMPLETED'?'completed':'rejected'}">${o.status}</span></div>
-
-<button onclick="adminChangeStatus('${o.id}','COMPLETED')">Approve</button>
-<button onclick="adminChangeStatus('${o.id}','REJECTED')">Reject</button>
-<button onclick="adminChangeStatus('${o.id}','PENDING')">Pending</button>
-</div>
-`;
-
-adminOrders.appendChild(div);
-});
-} catch (error) {
-console.error("Error loading admin orders:", error);
-adminOrders.innerHTML='<div class="order-empty">Error loading orders</div>';
-}
-}
-
-// ADMIN: change status (require trx when approving)
-async function adminChangeStatus(id,newStatus){
-try {
-if(newStatus==='COMPLETED') {
-const orderDoc = await db.collection('orders').doc(id).get();
-if (!orderDoc.exists) {
-alert("Order not found");
-return;
-}
-
-const orderData = orderDoc.data();
-if(!orderData.trx || orderData.trx.trim()==''){
-alert("⚠ TXID ছাড়া Approve করা যাবে না!");
-return;
-}
-}
-
-await db.collection('orders').doc(id).update({
-status: newStatus
-});
-
-loadAdmin();
-loadMyOrders();
-alert("Status Updated");
-} catch (error) {
-console.error("Error updating status:", error);
-alert("Error updating status. Please try again.");
-}
-}
-
 // MODAL for specific order
 let currentModalId=null;
 async function openModal(id){
@@ -918,7 +757,7 @@ mTitle.innerText="Order — "+o.name;
 mBody.innerHTML=`
 <div class="small">Created: ${new Date(o.createdAt).toLocaleString()}</div>
 <div>নাম: <b>${o.name}</b></div>
-<div>নম্বর: <b>${o.number}</b></div>
+<div>নম্বার: <b>${o.number}</b></div>
 <div>কারেন্সি: <b>${o.currency}</b></div>
 <div>ডলার: <b>${o.dollar}</b> → টাকা: <b>${o.taka}</b></div>
 
@@ -958,7 +797,6 @@ await db.collection('orders').doc(currentModalId).update({
 trx: tx
 });
 
-loadAdmin();
 loadMyOrders();
 alert("Transaction ID Updated");
 
@@ -994,31 +832,14 @@ setInterval(updateStatus,60000);
 updateStatus();
 
 // VIEW SWITCH
-function showUser(){ userArea.style.display='block'; adminArea.style.display='none'; }
-
-// ADMIN LOGIN CHECK
-function checkAdmin(){
-const pass = adminPass.value.trim();
-if(pass === "saimon500"){ 
-adminLogin.style.display="none"; 
-showAdmin(); 
-} else { 
-alert("❌ Wrong Password!"); 
-}
-}
-
-function showAdmin(){ 
-userArea.style.display='none'; 
-adminArea.style.display='block'; 
-loadAdmin(); 
-loadRates(); 
+function showUser(){ 
+userArea.style.display='block'; 
 }
 
 // ON LOAD
 window.addEventListener('load',()=>{
 loadMyOrders();
-loadAdmin();
-loadRates();
+loadCurrencies();
 updateAccountUI();
 prefillUserFields();
 });
