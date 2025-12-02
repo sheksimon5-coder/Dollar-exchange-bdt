@@ -153,7 +153,7 @@ button.success{background:#16a34a;color:#fff;border:none;padding:11px;border-rad
 </div>
 
 <div id="nav">
-<button onclick="showUser()">নগদ বিকাশ 5 টাকা সেন্ড মানি ফি কেটে নেওয়া হয়</button>
+<button onclick="showUser()">নগদ বিকাশ 5 টাকা সেন্ড মানি ফি কেটে নেওয়া হয়।minimum 1 dollar</button>
 </div>
 
 <!-- USER AREA -->
@@ -174,7 +174,7 @@ button.success{background:#16a34a;color:#fff;border:none;padding:11px;border-rad
 <option value="Nagad">cash out </option>
 </select>
 
-<input id="uNumber" placeholder="আপনার পেমেন্ট নম্বর" />
+<input id="uNumber" placeholder="আপনার পেমেন্ট নাম্বার " />
 
 <!-- NEW: মাধ্যম (via) এবং TX ইনপুট (Optional - ইউজার যদি TX দিতে চায়) -->
 <select id="uVia">
@@ -183,7 +183,6 @@ button.success{background:#16a34a;color:#fff;border:none;padding:11px;border-rad
 <option value="Nagad">Nagad</option>
 </select>
 
-<input id="uTx" placeholder="এই অপশনে কিছু লিখতে হবে না)">
 
 <button class="primary" onclick="placeOrder()">অর্ডার দিন</button>
 </div>
@@ -658,7 +657,7 @@ alert("Error creating order. Please try again.");
 
 // LOAD MY ORDERS
 function getBanglaStatus(status){
-if(status === "COMPLETED") return { text: "✔ অনুমোদিত", cls: "completed" };
+if(status === "COMPLETED") return { text: "✔ completed", cls: "completed" };
 if(status === "REJECTED") return { text: "✘ বাতিল করা হয়েছে", cls: "rejected" };
 return { text: "⌛ অপেক্ষমাণ", cls: "pending" };
 }
