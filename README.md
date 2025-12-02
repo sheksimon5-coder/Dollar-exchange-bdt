@@ -79,7 +79,6 @@ button.primary{background:#0b75ff;color:#fff;border:none;padding:11px;border-rad
 <button class="primary" onclick="loginUser()">Login</button>
 <div style="text-align:center;margin-top:8px">
 <button class="btn-ghost" onclick="showSignup()">Sign Up</button>
-<button class="btn-ghost" onclick="showFisher()">Fisher</button>
 <button class="btn-ghost" onclick="showForgotPassword()">Forget Password</button>
 </div>
 </div>
@@ -90,17 +89,6 @@ button.primary{background:#0b75ff;color:#fff;border:none;padding:11px;border-rad
 <input id="signupNumber" placeholder="মোবাইল নম্বর" />
 <input id="signupPassword" placeholder="Password" type="password" />
 <button class="primary" onclick="signupUser()">Create Account</button>
-<div style="text-align:center;margin-top:8px">
-<button class="btn-ghost" onclick="showLogin()">Already have account</button>
-</div>
-</div>
-
-<div id="fisherForm" style="display:none">
-<input id="fisherName" placeholder="আপনার নাম" />
-<input id="fisherEmail" placeholder="Email" type="email" />
-<input id="fisherNumber" placeholder="মোবাইল নম্বর" />
-<input id="fisherPassword" placeholder="Password" type="password" />
-<button class="primary" onclick="signupFisher()">Create Fisher Account</button>
 <div style="text-align:center;margin-top:8px">
 <button class="btn-ghost" onclick="showLogin()">Already have account</button>
 </div>
@@ -176,7 +164,7 @@ button.primary{background:#0b75ff;color:#fff;border:none;padding:11px;border-rad
 <select id="uCurrency" onchange="calc()">
 <option value="Payeer">Payeer</option>
 <option value="Binance">Binance</option>
-<option value="gmail farmer">Binance</option>
+<option value="gmail farmer to Advcash">gmail farmer to Advcash</option>
 </select>
 
 <input id="uDollar" type="number" placeholder="কত ডলার সেল দিবেন" oninput="calc()" />
@@ -219,6 +207,9 @@ button.primary{background:#0b75ff;color:#fff;border:none;padding:11px;border-rad
 
 <label>Binance Rate (1 USD = ? Tk)</label>
 <input id="rateBinance" type="number"/>
+
+ <label>Advcash Rate (1 USD = ? Tk)</label>
+<input id="rateAdvcash" type="number"/>
 
 <button class="primary" onclick="saveRates()">💾 Save Rates</button>
 </div>
@@ -296,12 +287,14 @@ const adminLogin = document.getElementById('adminLogin');
 
 // Payment IDs
 const PAYEER_ID = 'P1131698605';
-const BINANCE_ID = '1188473082';
-
+const BINANCE_ID = 'B1188473082';
+const Advcash_ID = 'U1048 5654 4714';
+  
 // DEFAULT RATES
 let rates = {
 Payeer: 70,
-Binance: 20
+Binance: 20,
+Advcash:105
 };
 
 // ACCOUNT
@@ -360,11 +353,6 @@ alert("Error creating account. Please try again.");
 }
 }
 
-async function signupFisher(){
-const name = fisherName.value.trim();
-const email = fisherEmail.value.trim().toLowerCase();
-const number = fisherNumber.value.trim();
-const pass = fisherPassword.value;
 
 if(!name || !email || !pass || !number){ 
 alert('সব ঘর পূরণ করুন'); 
@@ -585,16 +573,19 @@ if (ratesDoc.exists) {
 rates = ratesDoc.data();
 ratePayeer.value = rates.Payeer;
 rateBinance.value = rates.Binance;
+rateBinance.value = rates.Advcash;
 } else {
 // If rates don't exist in Firestore, use default values
 ratePayeer.value = rates.Payeer;
 rateBinance.value = rates.Binance;
+rateBinance.value = rates.Advcash;
 }
 } catch (error) {
 console.error("Error loading rates:", error);
 // Fallback to default values
 ratePayeer.value = rates.Payeer;
 rateBinance.value = rates.Binance;
+rateBinance.value = rates.Advcash;
 }
 }
 
@@ -602,12 +593,13 @@ async function saveRates(){
 try {
 await db.collection('settings').doc('rates').set({
 Payeer: Number(ratePayeer.value),
-Binance: Number(rateBinance.value)
+Binance: Number(rateBinance.value),
+Binance: Number(rateAdvcash.value)
 });
 
 rates.Payeer = Number(ratePayeer.value);
 rates.Binance = Number(rateBinance.value);
-
+rates.Advcash = Number(Advcash.value);
 alert("✔ Dollar Rates Updated");
 } catch (error) {
 console.error("Error saving rates:", error);
@@ -666,6 +658,13 @@ Payeer ID: ${PAYEER_ID}
 <div class="id-badge">
 Binance ID: ${BINANCE_ID}
 <button style="float:right;padding:4px 10px" onclick="copyText('${BINANCE_ID}')">Copy</button>
+</div>
+
+<div style="height:6px"></div>
+
+<div class="id-badge">
+Advcash ID: ${Advcash_ID}
+<button style="float:right;padding:4px 10px" onclick="copyText('${Advcash_ID}')">Copy</button>
 </div>
 `;
 
