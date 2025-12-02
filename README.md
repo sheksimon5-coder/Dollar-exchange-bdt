@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+
 <html lang="bn">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Dollar Exchange - Updated</title>
+<title>Dollar Exchange bdt - Updated</title>
 <style>
 body{font-family: sans-serif;background:#f2f5f8;margin:0;color:#111}
 .topbar{background:#fff;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 6px rgba(0,0,0,0.06)}
@@ -113,7 +113,7 @@ button.primary{background:#0b75ff;color:#fff;border:none;padding:11px;border-rad
 <div id="resetCodeSection" style="display:none;margin-top:10px">
 <p style="margin-bottom:10px">Enter the verification code sent to your email:</p>
 <input id="resetCode" placeholder="Verification Code" />
-<input id="newPassword" placeholder="New Password" type="password" />
+<input id="resetNewPassword" placeholder="New Password" type="password" />
 <button class="primary" onclick="resetPassword()">Reset Password</button>
 </div>
 <div style="text-align:center;margin-top:8px">
@@ -524,7 +524,7 @@ alert("Error sending password reset. Please try again.");
 async function resetPassword() {
 const email = forgotEmail.value.trim().toLowerCase();
 const code = resetCode.value.trim();
-const newPassword = newPassword.value;
+const newPassword = resetNewPassword.value; // Fixed: changed from newPassword to resetNewPassword
 
 if (!email || !code || !newPassword) {
 alert('Please fill all fields');
@@ -566,7 +566,7 @@ await db.collection('users').doc(userDoc.id).update({ password: newPassword });
 // Clear the form
 forgotEmail.value = '';
 resetCode.value = '';
-newPassword.value = '';
+resetNewPassword.value = ''; // Fixed: changed from newPassword to resetNewPassword
 document.getElementById('resetCodeSection').style.display = 'none';
 
 alert('Password reset successful! You can now login with your new password.');
