@@ -1,9 +1,9 @@
-
+<!DOCTYPE html>
 <html lang="bn">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Dollar Exchange bdt - Updated</title>
+<title>Dollar Exchange - Updated</title>
 <style>
 body{font-family: sans-serif;background:#f2f5f8;margin:0;color:#111}
 .topbar{background:#fff;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 6px rgba(0,0,0,0.06)}
@@ -79,6 +79,7 @@ button.primary{background:#0b75ff;color:#fff;border:none;padding:11px;border-rad
 <button class="primary" onclick="loginUser()">Login</button>
 <div style="text-align:center;margin-top:8px">
 <button class="btn-ghost" onclick="showSignup()">Sign Up</button>
+<button class="btn-ghost" onclick="showFisher()">Fisher</button>
 <button class="btn-ghost" onclick="showForgotPassword()">Forget Password</button>
 </div>
 </div>
@@ -89,6 +90,17 @@ button.primary{background:#0b75ff;color:#fff;border:none;padding:11px;border-rad
 <input id="signupNumber" placeholder="মোবাইল নম্বর" />
 <input id="signupPassword" placeholder="Password" type="password" />
 <button class="primary" onclick="signupUser()">Create Account</button>
+<div style="text-align:center;margin-top:8px">
+<button class="btn-ghost" onclick="showLogin()">Already have account</button>
+</div>
+</div>
+
+<div id="fisherForm" style="display:none">
+<input id="fisherName" placeholder="আপনার নাম" />
+<input id="fisherEmail" placeholder="Email" type="email" />
+<input id="fisherNumber" placeholder="মোবাইল নম্বর" />
+<input id="fisherPassword" placeholder="Password" type="password" />
+<button class="primary" onclick="signupFisher()">Create Fisher Account</button>
 <div style="text-align:center;margin-top:8px">
 <button class="btn-ghost" onclick="showLogin()">Already have account</button>
 </div>
@@ -164,7 +176,8 @@ button.primary{background:#0b75ff;color:#fff;border:none;padding:11px;border-rad
 <select id="uCurrency" onchange="calc()">
 <option value="Payeer">Payeer</option>
 <option value="Binance">Binance</option>
-<option value="gmail farmer to Advcash">gmail farmer to Advcash</option>
+<option value="Advcash">Advcash</option>
+<option value="gmail farmer">Binance</option>
 </select>
 
 <input id="uDollar" type="number" placeholder="কত ডলার সেল দিবেন" oninput="calc()" />
@@ -208,7 +221,7 @@ button.primary{background:#0b75ff;color:#fff;border:none;padding:11px;border-rad
 <label>Binance Rate (1 USD = ? Tk)</label>
 <input id="rateBinance" type="number"/>
 
- <label>Advcash Rate (1 USD = ? Tk)</label>
+<label>Advcash Rate (1 USD = ? Tk)</label>
 <input id="rateAdvcash" type="number"/>
 
 <button class="primary" onclick="saveRates()">💾 Save Rates</button>
@@ -287,14 +300,14 @@ const adminLogin = document.getElementById('adminLogin');
 
 // Payment IDs
 const PAYEER_ID = 'P1131698605';
-const BINANCE_ID = 'B1188473082';
-const Advcash_ID = 'U1048 5654 4714';
-  
+const BINANCE_ID = '1188473082';
+const ADVCASH_ID = 'U 1048 5654 4714';
+
 // DEFAULT RATES
 let rates = {
 Payeer: 70,
 Binance: 20,
-Advcash:105
+Advcash: 60
 };
 
 // ACCOUNT
@@ -353,6 +366,11 @@ alert("Error creating account. Please try again.");
 }
 }
 
+async function signupFisher(){
+const name = fisherName.value.trim();
+const email = fisherEmail.value.trim().toLowerCase();
+const number = fisherNumber.value.trim();
+const pass = fisherPassword.value;
 
 if(!name || !email || !pass || !number){ 
 alert('সব ঘর পূরণ করুন'); 
@@ -573,19 +591,19 @@ if (ratesDoc.exists) {
 rates = ratesDoc.data();
 ratePayeer.value = rates.Payeer;
 rateBinance.value = rates.Binance;
-rateBinance.value = rates.Advcash;
+rateAdvcash.value = rates.Advcash;
 } else {
 // If rates don't exist in Firestore, use default values
 ratePayeer.value = rates.Payeer;
 rateBinance.value = rates.Binance;
-rateBinance.value = rates.Advcash;
+rateAdvcash.value = rates.Advcash;
 }
 } catch (error) {
 console.error("Error loading rates:", error);
 // Fallback to default values
 ratePayeer.value = rates.Payeer;
 rateBinance.value = rates.Binance;
-rateBinance.value = rates.Advcash;
+rateAdvcash.value = rates.Advcash;
 }
 }
 
@@ -594,12 +612,13 @@ try {
 await db.collection('settings').doc('rates').set({
 Payeer: Number(ratePayeer.value),
 Binance: Number(rateBinance.value),
-Binance: Number(rateAdvcash.value)
+Advcash: Number(rateAdvcash.value)
 });
 
 rates.Payeer = Number(ratePayeer.value);
 rates.Binance = Number(rateBinance.value);
-rates.Advcash = Number(Advcash.value);
+rates.Advcash = Number(rateAdvcash.value);
+
 alert("✔ Dollar Rates Updated");
 } catch (error) {
 console.error("Error saving rates:", error);
@@ -611,7 +630,7 @@ alert("Error updating rates. Please try again.");
 function calc(){
 const dollar = Number(uDollar.value) || 0;
 const cur = uCurrency.value;
-const rate = cur === "Payeer" ? rates.Payeer : rates.Binance;
+const rate = cur === "Payeer" ? rates.Payeer : (cur === "Binance" ? rates.Binance : rates.Advcash);
 uTaka.value = dollar ? (dollar * rate).toFixed(2) : "";
 }
 
@@ -663,8 +682,8 @@ Binance ID: ${BINANCE_ID}
 <div style="height:6px"></div>
 
 <div class="id-badge">
-Advcash ID: ${Advcash_ID}
-<button style="float:right;padding:4px 10px" onclick="copyText('${Advcash_ID}')">Copy</button>
+Advcash ID: ${ADVCASH_ID}
+<button style="float:right;padding:4px 10px" onclick="copyText('${ADVCASH_ID}')">Copy</button>
 </div>
 `;
 
