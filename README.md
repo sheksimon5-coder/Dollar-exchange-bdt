@@ -1,12 +1,11 @@
-
 <html lang="bn">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Dollar Exchange - User Panel</title>
 <style>
-body{font-family: sans-serif;background:#f2f5f8;margin:0;color:#111}
-.topbar{background:#fff;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 6px rgba(0,0,0,0.06)}
+body{font-family: sans-serif;background:#f2f5f8;margin:0;color:#111;min-height:100vh}
+.topbar{background:#fff;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 6px rgba(0,0,0,0.06);position:sticky;top:0;z-index:100}
 .logo{display:flex;align-items:center;gap:10px}
 .logo img{width:44px;height:44px;border-radius:8px;object-fit:cover}
 .status-badge{padding:6px 12px;border-radius:8px;color:#fff;font-size:14px;font-weight:700}
@@ -20,7 +19,7 @@ body{font-family: sans-serif;background:#f2f5f8;margin:0;color:#111}
 
 .card{width:92%;max-width:720px;margin:14px auto;background:#fff;padding:14px;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,0.06)}
 
-input,select,button,textarea{width:100%;padding:10px;margin:8px 0;border-radius:8px;border:1px solid #ddd;font-size:15px}
+input,select,button,textarea{width:100%;padding:10px;margin:8px 0;border-radius:8px;border:1px solid #ddd;font-size:15px;box-sizing:border-box}
 button.primary{background:#0b75ff;color:#fff;border:none;padding:11px;border-radius:8px;cursor:pointer}
 button.danger{background:#ef4444;color:#fff;border:none;padding:11px;border-radius:8px;cursor:pointer}
 button.success{background:#16a34a;color:#fff;border:none;padding:11px;border-radius:8px;cursor:pointer}
@@ -33,15 +32,15 @@ button.success{background:#16a34a;color:#fff;border:none;padding:11px;border-rad
 .completed{background:#16a34a}
 .rejected{background:#ef4444}
 
-#nav{display:flex;justify-content:space-around;background:#111827;padding:12px}
+#nav{display:flex;justify-content:space-around;background:#111827;padding:12px;position:sticky;top:60px;z-index:99}
 #nav button{width:48%;background:#22b573;color:#fff;border:none;padding:10px;border-radius:8px}
 
-.wa-btn{position:fixed;bottom:22px;left:18px;background:#25d366;width:62px;height:62px;border-radius:50%;display:flex;justify-content:center;align-items:center;box-shadow:0 4px 12px rgba(0,0,0,0.18)}
+.wa-btn{position:fixed;bottom:22px;left:18px;background:#25d366;width:62px;height:62px;border-radius:50%;display:flex;justify-content:center;align-items:center;box-shadow:0 4px 12px rgba(0,0,0,0.18);z-index:90}
 .wa-btn img{width:34px}
 
 .small{font-size:13px;color:#666}
-.modal{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;justify-content:center;align-items:flex-end;padding:20px;z-index:999}
-.modal .box{width:100%;max-width:520px;background:#fff;border-radius:12px;padding:16px}
+.modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;justify-content:center;align-items:center;padding:20px;z-index:1000;overflow:auto}
+.modal .box{width:100%;max-width:520px;background:#fff;border-radius:12px;padding:16px;margin:auto;max-height:90vh;overflow-y:auto}
 
 .id-badge{background:#f3f4f6;padding:8px;border-radius:8px;display:inline-block;width:100%}
 .order-empty{text-align:center;color:#6b7280;padding:26px}
@@ -49,9 +48,15 @@ button.success{background:#16a34a;color:#fff;border:none;padding:11px;border-rad
 .account-info{display:flex;gap:10px;align-items:center}
 .btn-ghost{background:transparent;border:1px solid #0b75ff;color:#0b75ff;padding:8px 12px;border-radius:8px;cursor:pointer}
 
+/* Fix for body scroll when modal is open */
+body.modal-open {
+  overflow: hidden;
+}
+
 @media (max-width:520px){
 .topbar{padding:8px}
 .blue-head{padding:24px 12px}
+.modal .box{margin:20px;width:calc(100% - 40px)}
 }
 </style>
 </head>
@@ -136,7 +141,7 @@ button.success{background:#16a34a;color:#fff;border:none;padding:11px;border-rad
 <img src="https://i.ibb.co.com/DD3h4qjv/file-000000007d947207b10fa3593fc67aa8.png" alt="file-000000007d947207b10fa3593fc67aa8" border="0">
 <div>
 <div style="font-size:16px;font-weight:800;color:#0037dd">Fast & Secure Exchange</div>
-<div class="small">সকাল৯ঃ০০টা থেকে রাত১০ঃ০০টা পর্যন্ত</div>
+<div class="small">সকাল৯ঃ০০টা থেকে রাত১০ঃ০০টা</div>
 </div>
 </div>
 
@@ -264,12 +269,52 @@ let currencies = [
 ];
 
 // ACCOUNT
-function openAccountModal(){ accountModal.style.display = "flex"; updateAccountUI(); }
-function closeAccountModal(){ accountModal.style.display = "none"; }
-function showSignup(){ loginForm.style.display='none'; signupForm.style.display='block'; fisherForm.style.display='none'; forgotPasswordForm.style.display='none'; accProfile.style.display='none'; accTitle.innerText = 'Sign Up'; }
-function showLogin(){ loginForm.style.display='block'; signupForm.style.display='none'; fisherForm.style.display='none'; forgotPasswordForm.style.display='none'; accProfile.style.display='none'; accTitle.innerText = 'Login'; }
-function showFisher(){ loginForm.style.display='none'; signupForm.style.display='none'; fisherForm.style.display='block'; forgotPasswordForm.style.display='none'; accProfile.style.display='none'; accTitle.innerText = 'Fisher Sign Up'; }
-function showForgotPassword(){ loginForm.style.display='none'; signupForm.style.display='none'; fisherForm.style.display='none'; forgotPasswordForm.style.display='block'; accProfile.style.display='none'; accTitle.innerText = 'Reset Password'; }
+function openAccountModal(){ 
+  accountModal.style.display = "flex"; 
+  document.body.classList.add('modal-open');
+  updateAccountUI(); 
+}
+
+function closeAccountModal(){ 
+  accountModal.style.display = "none"; 
+  document.body.classList.remove('modal-open');
+}
+
+function showSignup(){ 
+  loginForm.style.display='none'; 
+  signupForm.style.display='block'; 
+  fisherForm.style.display='none'; 
+  forgotPasswordForm.style.display='none'; 
+  accProfile.style.display='none'; 
+  accTitle.innerText = 'Sign Up'; 
+}
+
+function showLogin(){ 
+  loginForm.style.display='block'; 
+  signupForm.style.display='none'; 
+  fisherForm.style.display='none'; 
+  forgotPasswordForm.style.display='none'; 
+  accProfile.style.display='none'; 
+  accTitle.innerText = 'Login'; 
+}
+
+function showFisher(){ 
+  loginForm.style.display='none'; 
+  signupForm.style.display='none'; 
+  fisherForm.style.display='block'; 
+  forgotPasswordForm.style.display='none'; 
+  accProfile.style.display='none'; 
+  accTitle.innerText = 'Fisher Sign Up'; 
+}
+
+function showForgotPassword(){ 
+  loginForm.style.display='none'; 
+  signupForm.style.display='none'; 
+  fisherForm.style.display='none'; 
+  forgotPasswordForm.style.display='block'; 
+  accProfile.style.display='none'; 
+  accTitle.innerText = 'Reset Password'; 
+}
 
 async function signupUser(){
 const name = signupName.value.trim();
@@ -608,7 +653,8 @@ cBody.innerHTML = `
 `;
 
 cTx.value = tx;
-confirmModal.style.display = "block";
+confirmModal.style.display = "flex";
+document.body.classList.add('modal-open');
 }
 
 async function confirmOrder(){
@@ -641,6 +687,7 @@ const docRef = await db.collection('orders').add(newOrder);
 newOrder.id = docRef.id;
 
 confirmModal.style.display="none";
+document.body.classList.remove('modal-open');
 tempOrder=null;
 
 loadMyOrders();
@@ -721,13 +768,21 @@ return;
 }
 
 orders.forEach(o=>{
+// Make sure we're using the currency name, not the ID
+let currencyName = o.currency;
+if (!currencyName && o.currencyId) {
+// If currency name is missing but we have the ID, find the name
+const currency = currencies.find(c => c.id === o.currencyId);
+currencyName = currency ? currency.name : o.currencyId;
+}
+
 const s = getBanglaStatus(o.status);
 const box=document.createElement('div');
 box.className='order-box';
 box.innerHTML=`
 <div class="order-info">
 <div><b>${o.name}</b> <span class="small">• ${new Date(o.createdAt).toLocaleString()}</span></div>
-<div class="small">${o.currency} • ${o.dollar} USD → ${o.taka} TK • পেমেন্ট: ${o.paymentMethod}</div>
+<div class="small">${currencyName} • ${o.dollar} USD → ${o.taka} TK • পেমেন্ট: ${o.paymentMethod}</div>
 <div class="small">মাধ্যম: ${o.via || 'Not given'}</div>
 <div class="small">TXID: ${o.trx || 'Not given'}</div>
 </div>
@@ -752,20 +807,29 @@ if (!orderDoc.exists) return;
 
 const o = {id: orderDoc.id, ...orderDoc.data()};
 
+// Make sure we're using the currency name, not the ID
+let currencyName = o.currency;
+if (!currencyName && o.currencyId) {
+// If currency name is missing but we have the ID, find the name
+const currency = currencies.find(c => c.id === o.currencyId);
+currencyName = currency ? currency.name : o.currencyId;
+}
+
 mTitle.innerText="Order — "+o.name;
 
 mBody.innerHTML=`
 <div class="small">Created: ${new Date(o.createdAt).toLocaleString()}</div>
 <div>নাম: <b>${o.name}</b></div>
 <div>নম্বার: <b>${o.number}</b></div>
-<div>কারেন্সি: <b>${o.currency}</b></div>
+<div>কারেন্সি: <b>${currencyName}</b></div>
 <div>ডলার: <b>${o.dollar}</b> → টাকা: <b>${o.taka}</b></div>
 
 <div style="margin-top:8px">বর্তমান স্ট্যাটাস: <b>${o.status}</b></div>
 `;
 
 mTx.value = o.trx || "";
-modal.style.display="block";
+modal.style.display="flex";
+document.body.classList.add('modal-open');
 } catch (error) {
 console.error("Error opening order:", error);
 alert("Error loading order details");
@@ -776,6 +840,7 @@ function closeModal(event){
 // Check if the click was on the modal background or the close button
 if (!event || event.target === modal || event.target.textContent === 'Close') {
 modal.style.display='none'; 
+document.body.classList.remove('modal-open');
 currentModalId=null;
 }
 }
@@ -784,6 +849,7 @@ function closeConfirm(event){
 // Check if the click was on the modal background or the close button
 if (!event || event.target === confirmModal || event.target.textContent === 'Close') {
 confirmModal.style.display='none';
+document.body.classList.remove('modal-open');
 }
 }
 
