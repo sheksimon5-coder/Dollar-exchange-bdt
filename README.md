@@ -135,8 +135,8 @@ button.success{background:#16a34a;color:#fff;border:none;padding:11px;border-rad
 <div class="logo">
 <img src="https://i.ibb.co.com/DD3h4qjv/file-000000007d947207b10fa3593fc67aa8.png" alt="file-000000007d947207b10fa3593fc67aa8" border="0">
 <div>
-<div style="font-size:16px;font-weight:800;color:#0037dd">dollar bay sall</div>
-<div class="small">Fast & Secure Exchange</div>
+<div style="font-size:16px;font-weight:800;color:#0037dd">Fast & Secure Exchange</div>
+<div class="small">সকাল৯ঃ০০টা থেকে রাত১০ঃ০০টা</div>
 </div>
 </div>
 
@@ -153,7 +153,7 @@ button.success{background:#16a34a;color:#fff;border:none;padding:11px;border-rad
 </div>
 
 <div id="nav">
-<button onclick="showUser()">নগদ বিকাশ 5 টাকা সেন্ড মানি ফি কেটে নেওয়া হয়।minimum 1 dollar</button>
+<button onclick="showUser()">নগদ বিকাশ 5 টাকা সেন্ড মানি ফি কেটে নেওয়া হয়</button>
 </div>
 
 <!-- USER AREA -->
@@ -174,7 +174,7 @@ button.success{background:#16a34a;color:#fff;border:none;padding:11px;border-rad
 <option value="Nagad">cash out </option>
 </select>
 
-<input id="uNumber" placeholder="আপনার পেমেন্ট নাম্বার " />
+<input id="uNumber" placeholder="আপনার পেমেন্ট নাম্বার " numberonly />
 
 <!-- NEW: মাধ্যম (via) এবং TX ইনপুট (Optional - ইউজার যদি TX দিতে চায়) -->
 <select id="uVia">
