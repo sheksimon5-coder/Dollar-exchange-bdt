@@ -136,7 +136,7 @@ button.success{background:#16a34a;color:#fff;border:none;padding:11px;border-rad
 <img src="https://i.ibb.co.com/DD3h4qjv/file-000000007d947207b10fa3593fc67aa8.png" alt="file-000000007d947207b10fa3593fc67aa8" border="0">
 <div>
 <div style="font-size:16px;font-weight:800;color:#0037dd">Fast & Secure Exchange</div>
-<div class="small">সকাল৯ঃ০০টা থেকে রাত১০ঃ০০টা</div>
+<div class="small">সকাল৯ঃ০০টা থেকে রাত১০ঃ০০টা পর্যন্ত</div>
 </div>
 </div>
 
