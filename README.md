@@ -1,8 +1,10 @@
+<!DOCTYPE html>
 <html lang="bn">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Dollar Exchange - User Panel</title>
+<title id="pageTitle">Dollar Exchange - User Panel</title>
+<link id="favicon" rel="icon" href="">
 <style>
 body{font-family: sans-serif;background:#f2f5f8;margin:0;color:#111;min-height:100vh}
 .topbar{background:#fff;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 6px rgba(0,0,0,0.06);position:sticky;top:0;z-index:100}
@@ -48,6 +50,77 @@ button.success{background:#16a34a;color:#fff;border:none;padding:11px;border-rad
 .account-info{display:flex;gap:10px;align-items:center}
 .btn-ghost{background:transparent;border:1px solid #0b75ff;color:#0b75ff;padding:8px 12px;border-radius:8px;cursor:pointer}
 
+/* Maintenance mode styles */
+.maintenance-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.95);
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  text-align: center;
+  padding: 20px;
+}
+
+.maintenance-overlay h2 {
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.maintenance-overlay p {
+  margin-bottom: 30px;
+  color: #666;
+  max-width: 500px;
+}
+
+/* Global notification styles */
+.global-notification {
+  position: fixed;
+  top: 70px;
+  left: 0;
+  right: 0;
+  padding: 10px;
+  text-align: center;
+  color: white;
+  font-weight: bold;
+  z-index: 1000;
+  display: none;
+}
+
+.notification-info {
+  background-color: #31708f;
+}
+
+.notification-warning {
+  background-color: #8a6d3b;
+}
+
+.notification-success {
+  background-color: #5cb85c;
+}
+
+.notification-error {
+  background-color: #d9534f;
+}
+
+/* Currency image styles */
+.currency-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.currency-img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
 /* Fix for body scroll when modal is open */
 body.modal-open {
   overflow: hidden;
@@ -61,6 +134,15 @@ body.modal-open {
 </style>
 </head>
 <body>
+
+<!-- Global Notification -->
+<div id="globalNotification" class="global-notification"></div>
+
+<!-- Maintenance Mode Overlay -->
+<div id="maintenanceOverlay" class="maintenance-overlay" style="display:none;">
+  <h2>Site Under Maintenance</h2>
+  <p id="maintenanceMessage">We are currently performing maintenance. Please check back later.</p>
+</div>
 
 <!-- Account Modal -->
 <div id="accountModal" class="modal" style="display:none;">
@@ -138,10 +220,10 @@ body.modal-open {
 <!-- TOP BAR -->
 <div class="topbar">
 <div class="logo">
-<img src="https://i.ibb.co.com/DD3h4qjv/file-000000007d947207b10fa3593fc67aa8.png" alt="file-000000007d947207b10fa3593fc67aa8" border="0">
+<img id="logoImg" src="https://i.ibb.co.com/DD3h4qjv/file-000000007d947207b10fa3593fc67aa8.png" alt="file-000000007d947207b10fa3593fc67aa8" border="0">
 <div>
-<div style="font-size:16px;font-weight:800;color:#0037dd">Fast & Secure Exchange</div>
-<div class="small">সকাল৯ঃ০০টা থেকে রাত১০ঃ০০টা</div>
+<div id="siteName" style="font-size:16px;font-weight:800;color:#0037dd">Fast & Secure Exchange</div>
+<div id="siteTagline" class="small">সকাল৯ঃ০০টা থেকে রাত১০ঃ০০টা</div>
 </div>
 </div>
 
@@ -153,12 +235,12 @@ body.modal-open {
 </div>
 
 <div class="blue-head">
-<h1>Welcome to Dollar Exchange</h1>
-<p class="small">দয়া করে ট্রানজেকশন শুরু করার আগে নিয়মগুলো পড়ে নিন</p>
+<h1 id="welcomeTitle">Welcome to Dollar Exchange</h1>
+<p id="welcomeSubtitle" class="small">দয়া করে ট্রানজেকশন শুরু করার আগে নিয়মগুলো পড়ে নিন</p>
 </div>
 
 <div id="nav">
-<button onclick="showUser()">নগদ বিকাশ 5 টাকা সেন্ড মানি ফি কেটে নেওয়া হয়</button>
+<button id="navButton" onclick="showUser()">নগদ বিকাশ 5 টাকা সেন্ড মানি ফি কেটে নেওয়া হয়</button>
 </div>
 
 <!-- USER AREA -->
@@ -166,17 +248,28 @@ body.modal-open {
 <h2 style="text-align:center;margin-top:18px"></h2>
 
 <div class="card">
+<div id="orderInstructions" style="margin-bottom:15px; padding:10px; background:#f9f9f9; border-radius:8px; display:none;">
+<h4>Order Instructions</h4>
+<p id="orderInstructionsText"></p>
+</div>
+
 <input id="uName" placeholder="আপনার নাম" />
+<div style="position:relative">
 <select id="uCurrency" onchange="calc()">
 <!-- Currencies will be dynamically loaded here -->
 </select>
+</div>
 
 <input id="uDollar" type="number" placeholder="কত ডলার সেল দিবেন(minimum 1 dollar)" oninput="calc()" />
 <input id="uTaka" placeholder="টাকায় মূল্য" readonly />
 
+<div id="feeInfo" style="margin:8px 0; font-size:13px; color:#666; display:none;">
+<div>Transaction Fee: <span id="transactionFeeAmount">0</span> Tk (<span id="transactionFeePercent">0</span>%)</div>
+<div>Total Amount: <span id="totalAmount">0</span> Tk</div>
+</div>
+
 <select id="uPayment">
-<option value="bKash">sand money </option>
-<option value="Nagad">cash out </option>
+<!-- Payment methods will be dynamically loaded here -->
 </select>
 
 <input id="uNumber" placeholder="আপনার পেমেন্ট নাম্বার " numberonly />
@@ -234,7 +327,7 @@ body.modal-open {
 </div>
 
 <!-- WhatsApp Button -->
-<a href="https://wa.me/qr/DTBEJ472LPKOA1" class="wa-btn" target="_blank">
+<a id="whatsappLink" href="https://wa.me/qr/DTBEJ472LPKOA1" class="wa-btn" target="_blank">
 <img src="https://i.ibb.co/dnLD0Wf/20251129-064417.jpg" alt="wa">
 </a>
 
@@ -263,10 +356,55 @@ const accountModal = document.getElementById('accountModal');
 
 // DEFAULT CURRENCIES
 let currencies = [
-{ id: 'Payeer', name: 'Payeer', rate: 70, paymentId: 'P1131698605' },
-{ id: 'Binance', name: 'Binance', rate: 20, paymentId: '1188473082' },
-{ id: 'Advcash', name: 'Advcash', rate: 60, paymentId: 'U 1048 5654 4714' }
+{ id: 'Payeer', name: 'Payeer', rate: 70, paymentId: 'P1131698605', image: 'https://i.ibb.co/6yJ1s7Q/payeer-logo.png' },
+{ id: 'Binance', name: 'Binance', rate: 20, paymentId: '1188473082', image: 'https://i.ibb.co/k3QJz5w/binance-logo.png' },
+{ id: 'Advcash', name: 'Advcash', rate: 60, paymentId: 'U 1048 5654 4714', image: 'https://i.ibb.co/1n1J7r6/advcash-logo.png' }
 ];
+
+// DEFAULT PAYMENT METHODS
+let paymentMethods = [
+{ id: 'bKash', name: 'bKash', fee: 1.5 },
+{ id: 'Nagad', name: 'Nagad', fee: 1.5 },
+{ id: 'Rocket', name: 'Rocket', fee: 1.5 }
+];
+
+// SITE SETTINGS (will be loaded from Firebase)
+let siteSettings = {
+name: 'Fast & Secure Exchange',
+tagline: 'সকাল৯ঃ০০টা থেকে রাত১০ঃ০০টা',
+primaryColor: '#0b75ff',
+secondaryColor: '#0037dd',
+backgroundColor: '#f2f5f8',
+workStartHour: 9,
+workEndHour: 22,
+statusOverride: '',
+orderInstructions: '',
+whatsappLink: 'https://wa.me/qr/DTBEJ472LPKOA1',
+contactEmail: '',
+contactPhone: '',
+minDollarAmount: 1,
+maxDollarAmount: 1000,
+transactionFee: 0,
+transactionFeePercent: 0,
+logoUrl: 'https://i.ibb.co.com/DD3h4qjv/file-000000007d947207b10fa3593fc67aa8.png',
+faviconUrl: '',
+maintenanceMode: false,
+maintenanceMessage: 'We are currently performing maintenance. Please check back later.',
+requireLogin: false
+};
+
+// CONTENT SETTINGS (will be loaded from Firebase)
+let contentSettings = {
+welcomeTitle: 'Welcome to Dollar Exchange',
+welcomeSubtitle: 'দয়া করে ট্রানজেকশন শুরু করার আগে নিয়মগুলো পড়ে নিন',
+navButtonText: 'নগদ বিকাশ 5 টাকা সেন্ড মানি ফি কেটে নেওয়া হয়',
+homeContent: '',
+rulesTitle: 'Exchange Rules',
+rulesContent: 'Please read all rules before making a transaction.',
+globalNotification: '',
+notificationType: 'info',
+notificationActive: false
+};
 
 // ACCOUNT
 function openAccountModal(){ 
@@ -581,6 +719,138 @@ alert("Error resetting password. Please try again.");
 }
 }
 
+// LOAD SETTINGS FROM FIREBASE
+async function loadSiteSettings() {
+try {
+const settingsDoc = await db.collection('settings').doc('site').get();
+if (settingsDoc.exists) {
+siteSettings = { ...siteSettings, ...settingsDoc.data() };
+}
+} catch (error) {
+console.error("Error loading site settings:", error);
+}
+
+// Apply settings to UI
+applySiteSettings();
+}
+
+async function loadContentSettings() {
+try {
+const contentDoc = await db.collection('settings').doc('content').get();
+if (contentDoc.exists) {
+contentSettings = { ...contentSettings, ...contentDoc.data() };
+}
+} catch (error) {
+console.error("Error loading content settings:", error);
+}
+
+// Apply settings to UI
+applyContentSettings();
+}
+
+async function loadPaymentMethods() {
+try {
+const paymentMethodsDoc = await db.collection('settings').doc('paymentMethods').get();
+if (paymentMethodsDoc.exists) {
+paymentMethods = paymentMethodsDoc.data().list || paymentMethods;
+}
+} catch (error) {
+console.error("Error loading payment methods:", error);
+}
+
+// Update payment methods dropdown
+updatePaymentMethods();
+}
+
+function applySiteSettings() {
+// Update page title
+document.title = siteSettings.name || 'Dollar Exchange';
+document.getElementById('pageTitle').textContent = siteSettings.name || 'Dollar Exchange';
+
+// Update favicon
+if (siteSettings.faviconUrl) {
+document.getElementById('favicon').href = siteSettings.faviconUrl;
+}
+
+// Update logo
+if (siteSettings.logoUrl) {
+document.getElementById('logoImg').src = siteSettings.logoUrl;
+}
+
+// Update site name and tagline
+document.getElementById('siteName').textContent = siteSettings.name;
+document.getElementById('siteTagline').textContent = siteSettings.tagline;
+
+// Update colors
+document.documentElement.style.setProperty('--primary-color', siteSettings.primaryColor);
+document.documentElement.style.setProperty('--secondary-color', siteSettings.secondaryColor);
+document.body.style.backgroundColor = siteSettings.backgroundColor;
+
+// Update button colors
+document.querySelectorAll('.primary').forEach(el => {
+el.style.backgroundColor = siteSettings.primaryColor;
+});
+
+document.querySelectorAll('.top-buttons button').forEach(el => {
+el.style.borderColor = siteSettings.primaryColor;
+el.style.color = siteSettings.primaryColor;
+});
+
+// Update gradient header
+document.querySelector('.blue-head').style.background = 
+`linear-gradient(180deg,${siteSettings.secondaryColor},${siteSettings.primaryColor})`;
+
+// Update WhatsApp link
+if (siteSettings.whatsappLink) {
+document.getElementById('whatsappLink').href = siteSettings.whatsappLink;
+}
+
+// Update working hours display
+const workHoursText = `${siteSettings.workStartHour || 9}ঃ০০টা থেকে রাত${siteSettings.workEndHour || 22}ঃ০০টা`;
+document.getElementById('siteTagline').textContent = workHoursText;
+
+// Show/hide order instructions
+if (siteSettings.orderInstructions) {
+document.getElementById('orderInstructions').style.display = 'block';
+document.getElementById('orderInstructionsText').textContent = siteSettings.orderInstructions;
+}
+
+// Check maintenance mode
+if (siteSettings.maintenanceMode) {
+document.getElementById('maintenanceOverlay').style.display = 'flex';
+document.getElementById('maintenanceMessage').textContent = siteSettings.maintenanceMessage;
+}
+}
+
+function applyContentSettings() {
+// Update welcome text
+document.getElementById('welcomeTitle').textContent = contentSettings.welcomeTitle;
+document.getElementById('welcomeSubtitle').textContent = contentSettings.welcomeSubtitle;
+
+// Update navigation button text
+document.getElementById('navButton').textContent = contentSettings.navButtonText;
+
+// Show/hide global notification
+if (contentSettings.globalNotification && contentSettings.notificationActive) {
+const notificationEl = document.getElementById('globalNotification');
+notificationEl.textContent = contentSettings.globalNotification;
+notificationEl.className = `global-notification notification-${contentSettings.notificationType}`;
+notificationEl.style.display = 'block';
+}
+}
+
+function updatePaymentMethods() {
+const uPayment = document.getElementById('uPayment');
+uPayment.innerHTML = '';
+
+paymentMethods.forEach(method => {
+const option = document.createElement('option');
+option.value = method.id;
+option.textContent = method.name;
+uPayment.appendChild(option);
+});
+}
+
 // CURRENCY MANAGEMENT
 async function loadCurrencies(){
 try {
@@ -609,20 +879,36 @@ const dollar = Number(uDollar.value) || 0;
 const currencyId = uCurrency.value;
 const currency = currencies.find(c => c.id === currencyId);
 const rate = currency ? currency.rate : 0;
-uTaka.value = dollar ? (dollar * rate).toFixed(2) : "";
+const taka = dollar * rate;
+uTaka.value = taka.toFixed(2);
+
+// Calculate and display fees
+if (siteSettings.transactionFee > 0 || siteSettings.transactionFeePercent > 0) {
+const feeFixed = siteSettings.transactionFee || 0;
+const feePercent = siteSettings.transactionFeePercent || 0;
+const feeAmount = feeFixed + (taka * feePercent / 100);
+const total = taka + feeAmount;
+
+document.getElementById('feeInfo').style.display = 'block';
+document.getElementById('transactionFeeAmount').textContent = feeAmount.toFixed(2);
+document.getElementById('transactionFeePercent').textContent = feePercent;
+document.getElementById('totalAmount').textContent = total.toFixed(2);
+} else {
+document.getElementById('feeInfo').style.display = 'none';
+}
 }
 
 // PLACE ORDER (tempOrder will hold via & tx if user filled)
 function placeOrder(){
 const current = getCurrentUser();
-if(!current){
+if(siteSettings.requireLogin && !current){
 alert('অর্ডার দিতে হলে প্রথমে Login/Sign Up করুন');
 openAccountModal();
 return;
 }
 
-const name = (uName.value.trim() || current.name);
-const number = (uNumber.value.trim() || current.number);
+const name = (uName.value.trim() || current?.name);
+const number = (uNumber.value.trim() || current?.number);
 const currencyId = uCurrency.value;
 const currency = currencies.find(c => c.id === currencyId);
 const currencyName = currency ? currency.name : '';
@@ -631,6 +917,17 @@ const taka = uTaka.value;
 const payment = uPayment.value;
 const via = uVia.value || "";
 const tx = uTx.value.trim() || "";
+
+// Check minimum and maximum dollar amount
+if (dollar < siteSettings.minDollarAmount) {
+alert(`Minimum dollar amount is ${siteSettings.minDollarAmount}`);
+return;
+}
+
+if (dollar > siteSettings.maxDollarAmount) {
+alert(`Maximum dollar amount is ${siteSettings.maxDollarAmount}`);
+return;
+}
 
 if(!name || !number || !dollar){
 alert('সব ঘর পূরণ করুন');
@@ -886,12 +1183,24 @@ alert("Failed to copy text");
 // ONLINE/OFFLINE
 function updateStatus(){
 const hour = new Date().getHours();
-if(hour>=22 || hour<9){
-opStatus.innerText='Offline';
-opStatus.className='status-badge offline';
+let isOnline = false;
+
+// Check if status override is set
+if (siteSettings.statusOverride === 'online') {
+isOnline = true;
+} else if (siteSettings.statusOverride === 'offline') {
+isOnline = false;
 } else {
+// Use automatic status based on working hours
+isOnline = hour >= siteSettings.workStartHour && hour < siteSettings.workEndHour;
+}
+
+if(isOnline){
 opStatus.innerText='Online';
 opStatus.className='status-badge online';
+} else {
+opStatus.innerText='Offline';
+opStatus.className='status-badge offline';
 }
 }
 setInterval(updateStatus,60000);
@@ -903,11 +1212,15 @@ userArea.style.display='block';
 }
 
 // ON LOAD
-window.addEventListener('load',()=>{
-loadMyOrders();
-loadCurrencies();
+window.addEventListener('load',async()=>{
+// Load all settings from Firebase
+await loadSiteSettings();
+await loadContentSettings();
+await loadPaymentMethods();
+await loadCurrencies();
 updateAccountUI();
 prefillUserFields();
+loadMyOrders();
 });
 </script>
 
