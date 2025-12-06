@@ -279,6 +279,7 @@ body.modal-open {
 <option value="">-- কিসের মাধ্যমে টাকা নিবেন এটি সিলেট করুন --</option>
 <option value="bKash">bKash</option>
 <option value="Nagad">Nagad</option>
+<option value="Rocket">Rocket</option>
 </select>
 
 <input id="uTx" placeholder="এই অপশনে কিছু লিখতে হবে না)">
