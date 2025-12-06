@@ -362,10 +362,7 @@ let currencies = [
 ];
 
 // DEFAULT PAYMENT METHODS
-let paymentMethods = [
-{ id: 'bKash', name: 'bKash', fee: 1.5 },
-{ id: 'Nagad', name: 'Nagad', fee: 1.5 },
-{ id: 'Rocket', name: 'Rocket', fee: 1.5 }
+let paymentMethods = 
 ];
 
 // SITE SETTINGS (will be loaded from Firebase)
