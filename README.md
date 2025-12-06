@@ -362,7 +362,7 @@ let currencies = [
 ];
 
 // DEFAULT PAYMENT METHODS
-let paymentMethods = 
+let paymentMethods = [
 ];
 
 // SITE SETTINGS (will be loaded from Firebase)
