@@ -126,6 +126,40 @@ body.modal-open {
   overflow: hidden;
 }
 
+/* Trade type toggle styles */
+.trade-type-toggle {
+  display: flex;
+  background: #f1f5f9;
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 15px 0;
+}
+
+.trade-type-toggle button {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.trade-type-toggle button.active {
+  background: #0b75ff;
+  color: white;
+}
+
+.trade-type-toggle button:first-child {
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
+}
+
+.trade-type-toggle button:last-child {
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
 @media (max-width:520px){
 .topbar{padding:8px}
 .blue-head{padding:24px 12px}
@@ -253,6 +287,12 @@ body.modal-open {
 <p id="orderInstructionsText"></p>
 </div>
 
+<!-- Trade Type Toggle -->
+<div class="trade-type-toggle">
+<button id="bhaiButton" class="active" onclick="setTradeType('bhai')">Bhai Rate</button>
+<button id="saleButton" onclick="setTradeType('sale')">Sale Rate</button>
+</div>
+
 <input id="uName" placeholder="আপনার নাম" />
 <div style="position:relative">
 <select id="uCurrency" onchange="calc()">
@@ -357,9 +397,9 @@ const accountModal = document.getElementById('accountModal');
 
 // DEFAULT CURRENCIES
 let currencies = [
-{ id: 'Payeer', name: 'Payeer', rate: 70, paymentId: 'P1131698605', image: 'https://i.ibb.co/6yJ1s7Q/payeer-logo.png' },
-{ id: 'Binance', name: 'Binance', rate: 20, paymentId: '1188473082', image: 'https://i.ibb.co/k3QJz5w/binance-logo.png' },
-{ id: 'Advcash', name: 'Advcash', rate: 60, paymentId: 'U 1048 5654 4714', image: 'https://i.ibb.co/1n1J7r6/advcash-logo.png' }
+{ id: 'Payeer', name: 'Payeer', buyRate: 68, sellRate: 70, paymentId: 'P1131698605', image: 'https://i.ibb.co/6yJ1s7Q/payeer-logo.png' },
+{ id: 'Binance', name: 'Binance', buyRate: 19, sellRate: 20, paymentId: '1188473082', image: 'https://i.ibb.co/k3QJz5w/binance-logo.png' },
+{ id: 'Advcash', name: 'Advcash', buyRate: 58, sellRate: 60, paymentId: 'U 1048 5654 4714', image: 'https://i.ibb.co/1n1J7r6/advcash-logo.png' }
 ];
 
 // DEFAULT PAYMENT METHODS
@@ -403,6 +443,9 @@ globalNotification: '',
 notificationType: 'info',
 notificationActive: false
 };
+
+// Trade type state
+let currentTradeType = 'bhai'; // Default to 'bhai' (buy rate)
 
 // ACCOUNT
 function openAccountModal(){ 
@@ -866,9 +909,27 @@ uCurrency.innerHTML = '';
 currencies.forEach(currency => {
 const option = document.createElement('option');
 option.value = currency.id;
-option.textContent = currency.name;
+const rate = currentTradeType === 'bhai' ? (currency.buyRate || currency.rate) : (currency.sellRate || currency.rate);
+option.textContent = `${currency.name} (${rate} BDT)`;
 uCurrency.appendChild(option);
 });
+
+// Recalculate if there's a value entered
+if (uDollar.value) {
+calc();
+}
+}
+
+// TRADE TYPE FUNCTIONS
+function setTradeType(type) {
+currentTradeType = type;
+  
+// Update button states
+document.getElementById('bhaiButton').classList.toggle('active', type === 'bhai');
+document.getElementById('saleButton').classList.toggle('active', type === 'sale');
+  
+// Reload currencies with updated rates
+loadCurrencies();
 }
 
 // CALC
@@ -876,7 +937,7 @@ function calc(){
 const dollar = Number(uDollar.value) || 0;
 const currencyId = uCurrency.value;
 const currency = currencies.find(c => c.id === currencyId);
-const rate = currency ? currency.rate : 0;
+const rate = currency ? (currentTradeType === 'bhai' ? (currency.buyRate || currency.rate) : (currency.sellRate || currency.rate)) : 0;
 const taka = dollar * rate;
 uTaka.value = taka.toFixed(2);
 
@@ -932,7 +993,7 @@ alert('সব ঘর পূরণ করুন');
 return;
 }
 
-window.tempOrder = { name, number, currency: currencyName, currencyId, dollar, taka, payment, via, tx };
+window.tempOrder = { name, number, currency: currencyName, currencyId, dollar, taka, payment, via, tx, tradeType: currentTradeType };
 
 // Get all payment IDs for display
 const paymentIds = currencies.map(c => `<div class="id-badge">${c.name} ID: ${c.paymentId}<button style="float:right;padding:4px 10px" onclick="copyText('${c.paymentId}')">Copy</button></div>`).join('<div style="height:6px"></div>');
@@ -942,6 +1003,7 @@ cBody.innerHTML = `
 <div>নম্বার: <b>${number}</b></div>
 <div>কারেন্সি: <b>${currencyName}</b></div>
 <div>ডলার: <b>${dollar}</b> → টাকা: <b>${taka}</b></div>
+<div>Trade Type: <b>${currentTradeType === 'bhai' ? 'Bhai Rate' : 'Sale Rate'}</div>
 
 <div style="margin-top:10px">পেমেন্ট পাঠানোর আইডি:</div>
  ${paymentIds}
@@ -972,7 +1034,8 @@ trx: tx || "",
 status: 'PENDING',
 createdAt: new Date().toISOString(),
 userEmail: getCurrentUser() ? getCurrentUser().email : null,
-userType: getCurrentUser() ? getCurrentUser().userType || 'regular' : 'regular'
+userType: getCurrentUser() ? getCurrentUser().userType || 'regular' : 'regular',
+tradeType: o.tradeType || 'sell'
 };
 
 // Add to Firestore
@@ -1080,6 +1143,7 @@ box.innerHTML=`
 <div class="small">${currencyName} • ${o.dollar} USD → ${o.taka} TK • পেমেন্ট: ${o.paymentMethod}</div>
 <div class="small">মাধ্যম: ${o.via || 'Not given'}</div>
 <div class="small">TXID: ${o.trx || 'Not given'}</div>
+<div class="small">Trade Type: ${o.tradeType === 'bhai' ? 'Bhai Rate' : 'Sale Rate'}</div>
 </div>
 
 <div class="order-meta">
@@ -1118,6 +1182,7 @@ mBody.innerHTML=`
 <div>নম্বার: <b>${o.number}</b></div>
 <div>কারেন্সি: <b>${currencyName}</b></div>
 <div>ডলার: <b>${o.dollar}</b> → টাকা: <b>${o.taka}</b></div>
+<div>Trade Type: <b>${o.tradeType === 'bhai' ? 'Bhai Rate' : 'Sale Rate'}</div>
 
 <div style="margin-top:8px">বর্তমান স্ট্যাটাস: <b>${o.status}</b></div>
 `;
