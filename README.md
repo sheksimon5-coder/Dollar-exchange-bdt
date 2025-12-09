@@ -289,8 +289,8 @@ body.modal-open {
 
 <!-- Trade Type Toggle -->
 <div class="trade-type-toggle">
-<button id="bhaiButton" class="active" onclick="setTradeType('bhai')">Bhai Rate</button>
-<button id="saleButton" onclick="setTradeType('sale')">Sale Rate</button>
+<button id="bhaiButton" class="active" onclick="setTradeType('buy')">buy</button>
+<button id="saleButton" onclick="setTradeType('sell')">sell</button>
 </div>
 
 <input id="uName" placeholder="আপনার নাম" />
