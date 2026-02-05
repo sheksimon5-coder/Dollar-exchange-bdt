@@ -315,7 +315,6 @@ body.modal-open {
 
 <!-- NEW: মাধ্যম (via) এবং TX ইনপুট (Optional - ইউজার যদি TX দিতে চায়) -->
 <select id="uVia">
-<option value="">-- কিসের মাধ্যমে টাকা নিবেন এটি সিলেট করুন --</option>
 <option value="bKash">bKash</option>
 <option value="Nagad">Nagad</option>
 <option value="Rocket">Rocket</option>
