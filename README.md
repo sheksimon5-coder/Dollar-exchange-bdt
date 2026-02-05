@@ -1,4 +1,3 @@
-
 <html lang="bn">
 <head>
 <meta charset="utf-8" />
@@ -295,12 +294,12 @@ body.modal-open {
 
 <input id="uName" placeholder="আপনার নাম" />
 <div style="position:relative">
-<select id="uCurrency" onchange="calc()">
+<select id="uCurrency" onchange="updatePlaceholderText()">
 <!-- Currencies will be dynamically loaded here -->
 </select>
 </div>
 
-<input id="uDollar" type="number" placeholder="কত ডলার সেল দিবেন(minimum 1 dollar)" oninput="calc()" />
+<input id="uDollar" type="number" placeholder="কত ডলার সেল দিবেন (minimum 1 dollar)" oninput="calc()" />
 <input id="uTaka" placeholder="টাকায় মূল্য" readonly />
 
 <div id="feeInfo" style="margin:8px 0; font-size:13px; color:#666; display:none;">
@@ -397,9 +396,9 @@ const accountModal = document.getElementById('accountModal');
 
 // DEFAULT CURRENCIES
 let currencies = [
-{ id: 'Payeer', name: 'Payeer', buyRate: 68, sellRate: 70, paymentId: 'P1131698605', image: 'https://i.ibb.co/6yJ1s7Q/payeer-logo.png' },
-{ id: 'Binance', name: 'Binance', buyRate: 19, sellRate: 20, paymentId: '1188473082', image: 'https://i.ibb.co/k3QJz5w/binance-logo.png' },
-{ id: 'Advcash', name: 'Advcash', buyRate: 58, sellRate: 60, paymentId: 'U 1048 5654 4714', image: 'https://i.ibb.co/1n1J7r6/advcash-logo.png' }
+{ id: 'Payeer', name: 'Payeer', buyRate: 68, sellRate: 70, paymentId: 'P1131698605', image: 'https://i.ibb.co/6yJ1s7Q/payeer-logo.png', minDollar: 5, maxDollar: 500 },
+{ id: 'Binance', name: 'Binance', buyRate: 19, sellRate: 20, paymentId: '1188473082', image: 'https://i.ibb.co/k3QJz5w/binance-logo.png', minDollar: 1, maxDollar: 1000 },
+{ id: 'Advcash', name: 'Advcash', buyRate: 58, sellRate: 60, paymentId: 'U 1048 5654 4714', image: 'https://i.ibb.co/1n1J7r6/advcash-logo.png', minDollar: 10, maxDollar: 300 }
 ];
 
 // DEFAULT PAYMENT METHODS
@@ -897,7 +896,13 @@ async function loadCurrencies(){
 try {
 const currenciesDoc = await db.collection('settings').doc('currencies').get();
 if (currenciesDoc.exists) {
-currencies = currenciesDoc.data().list || currencies;
+const loadedCurrencies = currenciesDoc.data().list || currencies;
+// প্রতিটি কারেন্সির জন্য ডিফল্ট লিমিট সেট করুন যদি না থাকে
+currencies = loadedCurrencies.map(currency => ({
+  ...currency,
+  minDollar: currency.minDollar || siteSettings.minDollarAmount || 1,
+  maxDollar: currency.maxDollar || siteSettings.maxDollarAmount || 1000
+}));
 }
 } catch (error) {
 console.error("Error loading currencies:", error);
@@ -957,6 +962,22 @@ document.getElementById('feeInfo').style.display = 'none';
 }
 }
 
+// প্লেসহোল্ডার টেক্সট আপডেট করার জন্য একটি ফাংশন
+function updatePlaceholderText() {
+const currencyId = uCurrency.value;
+const currency = currencies.find(c => c.id === currencyId);
+  
+calc(); // Recalculate when currency changes
+  
+if (currency) {
+const minLimit = currency.minDollar || siteSettings.minDollarAmount;
+const maxLimit = currency.maxDollar || siteSettings.maxDollarAmount;
+uDollar.placeholder = `কত ডলার সেল দিবেন (${minLimit} থেকে ${maxLimit} ডলার পর্যন্ত)`;
+} else {
+uDollar.placeholder = `কত ডলার সেল দিবেন (minimum ${siteSettings.minDollarAmount} dollar)`;
+}
+}
+
 // PLACE ORDER (tempOrder will hold via & tx if user filled)
 function placeOrder(){
 const current = getCurrentUser();
@@ -971,13 +992,28 @@ const number = (uNumber.value.trim() || current?.number);
 const currencyId = uCurrency.value;
 const currency = currencies.find(c => c.id === currencyId);
 const currencyName = currency ? currency.name : '';
-const dollar = uDollar.value;
+const dollar = parseFloat(uDollar.value);
 const taka = uTaka.value;
 const payment = uPayment.value;
 const via = uVia.value || "";
 const tx = uTx.value.trim() || "";
 
-// Check minimum and maximum dollar amount
+// কারেন্সি-স্পেসিফিক লিমিট চেক
+if (currency) {
+const minLimit = currency.minDollar || siteSettings.minDollarAmount;
+const maxLimit = currency.maxDollar || siteSettings.maxDollarAmount;
+  
+if (dollar < minLimit) {
+  alert(`${currencyName} এর জন্য সর্বনিম্ন ${minLimit} ডলার হতে হবে`);
+  return;
+}
+
+if (dollar > maxLimit) {
+  alert(`${currencyName} এর জন্য সর্বোচ্চ ${maxLimit} ডলার হতে হবে`);
+  return;
+}
+} else {
+// সাধারণ লিমিট চেক (যদি কারেন্সি না পাওয়া যায়)
 if (dollar < siteSettings.minDollarAmount) {
 alert(`Minimum dollar amount is ${siteSettings.minDollarAmount}`);
 return;
@@ -986,6 +1022,7 @@ return;
 if (dollar > siteSettings.maxDollarAmount) {
 alert(`Maximum dollar amount is ${siteSettings.maxDollarAmount}`);
 return;
+}
 }
 
 if(!name || !number || !dollar){
@@ -1284,6 +1321,12 @@ await loadCurrencies();
 updateAccountUI();
 prefillUserFields();
 loadMyOrders();
+updatePlaceholderText();
+});
+
+// কারেন্সি চেঞ্জ হলে প্লেসহোল্ডার আপডেট করুন:
+document.getElementById('uCurrency').addEventListener('change', function() {
+updatePlaceholderText();
 });
 </script>
 
