@@ -40,7 +40,7 @@ body{font-family: sans-serif;background:#f2f5f8;margin:0;color:#111;min-height:1
 /* Typing Animation Styles */
 .typing-text {
   display: inline-block;
-  border-right: 2px solid #fff; /* White cursor for blue background */
+  border-right: 2px solid #fff;
   padding-right: 5px;
   animation: blink-caret 0.75s step-end infinite;
 }
@@ -92,38 +92,18 @@ button.success{background:#16a34a;color:#fff;border:none;padding:11px;border-rad
 .account-info{display:flex;gap:10px;align-items:center}
 .btn-ghost{background:transparent;border:1px solid #0b75ff;color:#0b75ff;padding:8px 12px;border-radius:8px;cursor:pointer}
 
-/* Maintenance mode styles */
 .maintenance-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(255, 255, 255, 0.95);
-  z-index: 9999;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-  text-align: center;
-  padding: 20px;
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(255, 255, 255, 0.95); z-index: 9999;
+  display: flex; justify-content: center; align-items: center; flex-direction: column;
+  text-align: center; padding: 20px;
 }
-
 .maintenance-overlay h2 { margin-bottom: 20px; color: #333; }
 .maintenance-overlay p { margin-bottom: 30px; color: #666; max-width: 500px; }
 
-/* Global notification styles */
 .global-notification {
-  position: fixed;
-  top: 70px;
-  left: 0;
-  right: 0;
-  padding: 10px;
-  text-align: center;
-  color: white;
-  font-weight: bold;
-  z-index: 1000;
-  display: none;
+  position: fixed; top: 70px; left: 0; right: 0; padding: 10px;
+  text-align: center; color: white; font-weight: bold; z-index: 1000; display: none;
 }
 .notification-info { background-color: #31708f; }
 .notification-warning { background-color: #8a6d3b; }
@@ -135,41 +115,21 @@ button.success{background:#16a34a;color:#fff;border:none;padding:11px;border-rad
 body.modal-open { overflow: hidden; }
 
 .trade-type-toggle {
-  display: flex;
-  background: #f1f5f9;
-  border-radius: 8px;
-  overflow: hidden;
-  margin: 15px 0;
+  display: flex; background: #f1f5f9; border-radius: 8px;
+  overflow: hidden; margin: 15px 0;
 }
 .trade-type-toggle button {
-  flex: 1;
-  padding: 12px;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  font-weight: 600;
-  transition: all 0.3s ease;
+  flex: 1; padding: 12px; border: none; background: transparent;
+  cursor: pointer; font-weight: 600; transition: all 0.3s ease;
 }
-.trade-type-toggle button.active {
-  background: #0b75ff;
-  color: white;
-}
+.trade-type-toggle button.active { background: #0b75ff; color: white; }
 
-/* Copy Button Style */
 .copy-btn-inside {
-  background-color: #e5e7eb;
-  border: none;
-  padding: 4px 10px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 13px;
-  transition: all 0.2s;
-  float: right;
+  background-color: #e5e7eb; border: none; padding: 4px 10px;
+  border-radius: 4px; cursor: pointer; font-size: 13px;
+  transition: all 0.2s; float: right;
 }
-.copy-btn-inside.copied {
-  background-color: #16a34a;
-  color: white;
-}
+.copy-btn-inside.copied { background-color: #16a34a; color: white; }
 
 @media (max-width:520px){
 .topbar{padding:8px}
@@ -312,7 +272,6 @@ body.modal-open { overflow: hidden; }
 <input id="uName" placeholder="আপনার নাম" />
 <div style="position:relative">
 <select id="uCurrency" onchange="updatePlaceholderText()">
-<!-- Currencies will be dynamically loaded here -->
 </select>
 </div>
 
@@ -325,7 +284,6 @@ body.modal-open { overflow: hidden; }
 </div>
 
 <select id="uPayment">
-<!-- Payment methods will be dynamically loaded here -->
 </select>
 
 <input id="uNumber" placeholder="আপনার পেমেন্ট নাম্বার " numberonly />
@@ -385,7 +343,7 @@ body.modal-open { overflow: hidden; }
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 <script>
 // ==========================================
-// TELEGRAM CONFIGURATION
+// TELEGRAM CONFIGURATION (ADMIN)
 // ==========================================
 const TELEGRAM_BOT_TOKEN = "8585021424:AAGsqk3Tsay2y3PZVolWE-rvUjre9h0u8HQ";
 const TELEGRAM_CHAT_ID = "7427334644";
@@ -400,71 +358,101 @@ messagingSenderId: "294819905234",
 appId: "1:294819905234:web:4da06ee71d54daeb40770b"
 };
 
-// Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// Get DOM elements
 const modal = document.getElementById('modal');
 const confirmModal = document.getElementById('confirmModal');
 const accountModal = document.getElementById('accountModal');
 
-// DEFAULT CURRENCIES
 let currencies = [
 { id: 'Payeer', name: 'Payeer', buyRate: 68, sellRate: 70, paymentId: 'P1131698605', image: 'https://i.ibb.co/6yJ1s7Q/payeer-logo.png', minDollar: 5, maxDollar: 500 },
 { id: 'Binance', name: 'Binance', buyRate: 19, sellRate: 20, paymentId: '1188473082', image: 'https://i.ibb.co/k3QJz5w/binance-logo.png', minDollar: 1, maxDollar: 1000 },
 { id: 'Advcash', name: 'Advcash', buyRate: 58, sellRate: 60, paymentId: 'U 1048 5654 4714', image: 'https://i.ibb.co/1n1J7r6/advcash-logo.png', minDollar: 10, maxDollar: 300 }
 ];
 
-// DEFAULT PAYMENT METHODS
 let paymentMethods = [];
-
-// SITE SETTINGS
 let siteSettings = {
-name: 'Fast & Secure Exchange',
-tagline: 'সকাল৯ঃ০০টা থেকে রাত১০ঃ০০টা',
-primaryColor: '#0b75ff',
-secondaryColor: '#0037dd',
-backgroundColor: '#f2f5f8',
-workStartTime: '09:00', 
-workEndTime: '22:00',
-statusOverride: '',
-orderInstructions: '',
-whatsappLink: 'https://wa.me/qr/DTBEJ472LPKOA1',
-contactEmail: '',
-contactPhone: '',
-minDollarAmount: 1,
-maxDollarAmount: 1000,
-transactionFee: 0,
-transactionFeePercent: 0,
-logoUrl: 'https://i.ibb.co.com/DD3h4qjv/file-000000007d947207b10fa3593fc67aa8.png',
-faviconUrl: '',
-maintenanceMode: false,
-maintenanceMessage: 'We are currently performing maintenance. Please check back later.',
-requireLogin: false,
-showLoading: true
+name: 'Fast & Secure Exchange', tagline: 'সকাল৯ঃ০০টা থেকে রাত১০ঃ০০টা', primaryColor: '#0b75ff', secondaryColor: '#0037dd',
+backgroundColor: '#f2f5f8', workStartTime: '09:00', workEndTime: '22:00', statusOverride: '', orderInstructions: '',
+whatsappLink: 'https://wa.me/qr/DTBEJ472LPKOA1', contactEmail: '', contactPhone: '', minDollarAmount: 1, maxDollarAmount: 1000,
+transactionFee: 0, transactionFeePercent: 0, logoUrl: 'https://i.ibb.co.com/DD3h4qjv/file-000000007d947207b10fa3593fc67aa8.png',
+faviconUrl: '', maintenanceMode: false, maintenanceMessage: 'We are currently performing maintenance. Please check back later.', requireLogin: false, showLoading: true
 };
 
-// CONTENT SETTINGS
 let contentSettings = {
-welcomeTitle: 'Welcome to Dollar Exchange',
-welcomeSubtitle: 'দয়া করে ট্রানজেকশন শুরু করার আগে নিয়মগুলো পড়ে নিন',
-navButtonText: 'নগদ বিকাশ 5 টাকা সেন্ড মানি ফি কেটে নেওয়া হয়',
-homeContent: '',
-rulesTitle: 'Exchange Rules',
-rulesContent: 'Please read all rules before making a transaction.',
-globalNotification: '',
-notificationType: 'info',
-notificationActive: false,
-typingText: '',
-typingSpeed: 80
+welcomeTitle: 'Welcome to Dollar Exchange', welcomeSubtitle: 'দয়া করে ট্রানজেকশন শুরু করার আগে নিয়মগুলো পড়ে নিন',
+navButtonText: 'নগদ বিকাশ 5 টাকা সেন্ড মানি ফি কেটে নেওয়া হয়', homeContent: '', rulesTitle: 'Exchange Rules',
+rulesContent: 'Please read all rules before making a transaction.', globalNotification: '', notificationType: 'info',
+notificationActive: false, typingText: '', typingSpeed: 80
 };
 
-// Trade type state
 let currentTradeType = 'bhai';
 
 // ==========================================
-// TELEGRAM NOTIFICATION FUNCTION
+// ১. ব্রাউজার নোটিফিকেশন সিস্টেম (ইউজারের জন্য)
+// ==========================================
+function initBrowserNotifications() {
+    // চেক করছে ব্রাউজার নোটিফিকেশন সাপোর্ট করে কিনা
+    if (!("Notification" in window)) {
+        console.log("This browser does not support notifications.");
+        return;
+    }
+
+    // যদি ইউজার আগে পারমিশন না দিয়ে থাকে, তবে অনুমতি চাইছে
+    else if (Notification.permission !== "granted" && Notification.permission !== "denied") {
+        Notification.requestPermission().then(function (permission) {
+            if (permission === "granted") {
+                console.log("Notification permission granted.");
+            }
+        });
+    }
+}
+
+// নোটিফিকেশন দেখানোর ফাংশন
+function showUserNotification(title, body) {
+    if (Notification.permission === "granted") {
+        new Notification(title, {
+            body: body,
+            icon: siteSettings.logoUrl || 'https://i.ibb.co.com/DD3h4qjv/file-000000007d947207b10fa3593fc67aa8.png',
+            vibrate: [200, 100, 200], // মোবাইল ভাইব্রেট
+            tag: "order-status-update" // একই ট্যাগের নোটিফিকেশন গ্রুপ হবে
+        });
+    }
+}
+
+// ==========================================
+// ২. অর্ডার স্ট্যাটাস চেঞ্জ লিসেনার (রিয়েলটাইম)
+// ==========================================
+function listenForOrderUpdates() {
+    const current = getCurrentUser();
+    if (!current) return;
+
+    // শুধু লগইন করা ইউজারের অর্ডারগুলো লিসেন করবে
+    db.collection('orders').where('userEmail', '==', current.email)
+    .onSnapshot(snapshot => {
+        snapshot.docChanges().forEach(change => {
+            if (change.type === "modified") {
+                const order = change.doc.data();
+                const orderId = change.doc.id;
+                
+                // চেক করছে স্ট্যাটাস পরিবর্তন হয়েছে কিনা
+                // এখানে আমরা সহজ সমাধান করছি: যখনই ডাটা আপডেট হবে, আমরা স্ট্যাটাস চেক করব
+                let msg = "";
+                if(order.status === "COMPLETED") {
+                    msg = `অভিনন্দন! আপনার ${order.dollar}$ এর অর্ডারটি সফলভাবে সম্পন্ন হয়েছে।`;
+                    showUserNotification("✅ Order Completed", msg);
+                } else if(order.status === "REJECTED") {
+                    msg = `দুঃখিত, আপনার অর্ডারটি বাতিল করা হয়েছে।`;
+                    showUserNotification("❌ Order Rejected", msg);
+                }
+            }
+        });
+    });
+}
+
+// ==========================================
+// TELEGRAM FUNCTION (ADMIN)
 // ==========================================
 async function sendTelegramNotification(orderDetails) {
     const message = `
@@ -479,9 +467,7 @@ async function sendTelegramNotification(orderDetails) {
 
 ⏰ *Time:* ${new Date().toLocaleString()}
     `;
-
     const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
-    
     try {
         await fetch(url, {
             method: 'POST',
@@ -492,9 +478,7 @@ async function sendTelegramNotification(orderDetails) {
                 parse_mode: "Markdown"
             })
         });
-    } catch (e) {
-        console.error("Telegram Error:", e);
-    }
+    } catch (e) { console.error("Telegram Error:", e); }
 }
 
 // ACCOUNT FUNCTIONS
@@ -518,6 +502,8 @@ await db.collection('users').add({ name, email, number, password: pass, userType
 localStorage.setItem('currentUser', JSON.stringify({ name, email, number, userType: 'regular' }));
 signupName.value=''; signupEmail.value=''; signupNumber.value=''; signupPassword.value='';
 updateAccountUI(); closeAccountModal(); alert('Account created and logged in ✔'); prefillUserFields(); loadMyOrders();
+// লগইন করলে নোটিফিকেশন লিসেনার চালু করবে
+listenForOrderUpdates();
 } catch (error) { console.error("Error creating user:", error); alert("Error creating account. Please try again."); }
 }
 
@@ -534,6 +520,7 @@ await db.collection('users').add({ name, email, number, password: pass, userType
 localStorage.setItem('currentUser', JSON.stringify({ name, email, number, userType: 'fisher' }));
 fisherName.value=''; fisherEmail.value=''; fisherNumber.value=''; fisherPassword.value='';
 updateAccountUI(); closeAccountModal(); alert('Fisher Account created and logged in ✔'); prefillUserFields(); loadMyOrders();
+listenForOrderUpdates();
 } catch (error) { console.error("Error creating fisher account:", error); alert("Error creating fisher account. Please try again."); }
 }
 
@@ -546,6 +533,8 @@ if (userSnapshot.empty) { alert('Invalid credentials'); return; }
 const user = userSnapshot.docs[0].data();
 localStorage.setItem('currentUser', JSON.stringify({ name: user.name, email: user.email, number: user.number, userType: user.userType || 'regular' }));
 updateAccountUI(); closeAccountModal(); alert('Login successful ✔'); prefillUserFields(); loadMyOrders();
+// লগইন করলে নোটিফিকেশন লিসেনার চালু করবে
+listenForOrderUpdates();
 } catch (error) { console.error("Error logging in:", error); alert("Error logging in. Please try again."); }
 }
 
@@ -657,7 +646,6 @@ notificationEl.className = `global-notification notification-${contentSettings.n
 notificationEl.style.display = 'block';
 }
 
-// Initialize Typing Text Animation
 if (contentSettings.typingText) {
    startTypingAnimation(contentSettings.typingText, contentSettings.typingSpeed || 80);
 }
@@ -777,7 +765,7 @@ confirmModal.style.display = "flex";
 document.body.classList.add('modal-open');
 }
 
-// CONFIRM ORDER (WITH TELEGRAM NOTIFICATION)
+// CONFIRM ORDER
 async function confirmOrder(){
 const tx = cTx.value.trim();
 const o = tempOrder;
@@ -787,14 +775,9 @@ const newOrder = {
 name: o.name, number: o.number, currency: o.currency, currencyId: o.currencyId, dollar: o.dollar, taka: o.taka, paymentMethod: o.payment, via: o.via || "", trx: tx || "",
 status: 'PENDING', createdAt: new Date().toISOString(), userEmail: getCurrentUser() ? getCurrentUser().email : null, userType: getCurrentUser() ? getCurrentUser().userType || 'regular' : 'regular', tradeType: o.tradeType || 'sell'
 };
-
-// 1. Save to Database
 const docRef = await db.collection('orders').add(newOrder);
 newOrder.id = docRef.id;
-
-// 2. Send Telegram Notification
-sendTelegramNotification(newOrder);
-
+sendTelegramNotification(newOrder); // Telegram to Admin
 confirmModal.style.display="none"; document.body.classList.remove('modal-open'); tempOrder=null;
 loadMyOrders(); alert("অর্ডার Confirm হয়েছে ✔");
 uDollar.value=""; uTaka.value=""; uTx.value=""; uVia.value="";
@@ -905,61 +888,39 @@ loadMyOrders(); alert("Transaction ID Updated"); closeModal();
 } catch (error) { console.error("Error updating transaction ID:", error); alert("Error updating transaction ID. Please try again."); }
 }
 
-// COPY FUNCTION
 function copyText(text, btn) {
   navigator.clipboard.writeText(text).then(() => {
     if (btn) {
       const originalText = btn.innerText;
       btn.innerText = "Copied!";
       btn.classList.add('copied');
-      setTimeout(() => {
-        btn.innerText = originalText;
-        btn.classList.remove('copied');
-      }, 1500);
+      setTimeout(() => { btn.innerText = originalText; btn.classList.remove('copied'); }, 1500);
     }
-  }).catch(err => {
-    console.error('Could not copy text: ', err);
-    alert("Failed to copy text");
-  });
+  }).catch(err => { console.error('Could not copy text: ', err); alert("Failed to copy text"); });
 }
 
 // ONLINE/OFFLINE STATUS
 function updateStatus(){
   let isOnline = false;
   const current = new Date();
-  
-  if (siteSettings.statusOverride === 'online') {
-    isOnline = true;
-  } else if (siteSettings.statusOverride === 'offline') {
-    isOnline = false;
-  } else {
+  if (siteSettings.statusOverride === 'online') { isOnline = true; }
+  else if (siteSettings.statusOverride === 'offline') { isOnline = false; }
+  else {
     if (siteSettings.workStartTime && siteSettings.workEndTime) {
-      const nowHours = current.getHours();
-      const nowMinutes = current.getMinutes();
+      const nowHours = current.getHours(); const nowMinutes = current.getMinutes();
       const nowTotalMinutes = nowHours * 60 + nowMinutes;
-
       const [startH, startM] = siteSettings.workStartTime.split(':').map(Number);
       const startTotalMinutes = startH * 60 + startM;
-
       const [endH, endM] = siteSettings.workEndTime.split(':').map(Number);
       const endTotalMinutes = endH * 60 + endM;
-
-      if (endTotalMinutes > startTotalMinutes) {
-        isOnline = nowTotalMinutes >= startTotalMinutes && nowTotalMinutes < endTotalMinutes;
-      } else {
-        isOnline = nowTotalMinutes >= startTotalMinutes || nowTotalMinutes < endTotalMinutes;
-      }
-    } else {
-      const hour = current.getHours();
-      isOnline = hour >= 9 && hour < 22;
-    }
+      if (endTotalMinutes > startTotalMinutes) { isOnline = nowTotalMinutes >= startTotalMinutes && nowTotalMinutes < endTotalMinutes; }
+      else { isOnline = nowTotalMinutes >= startTotalMinutes || nowTotalMinutes < endTotalMinutes; }
+    } else { const hour = current.getHours(); isOnline = hour >= 9 && hour < 22; }
   }
-
-  if(isOnline){ opStatus.innerText='Online'; opStatus.className='status-badge online'; } 
+  if(isOnline){ opStatus.innerText='Online'; opStatus.className='status-badge online'; }
   else { opStatus.innerText='Offline'; opStatus.className='status-badge offline'; }
 }
 setInterval(updateStatus, 60000);
-
 function showUser(){ userArea.style.display='block'; }
 
 // TYPING ANIMATION FUNCTION
@@ -967,32 +928,18 @@ let typingInterval;
 function startTypingAnimation(text, speed) {
   const element = document.getElementById('welcomeSubtitle');
   if (!element || !text) return;
-  
   if (typingInterval) clearInterval(typingInterval);
-  
-  element.innerHTML = '';
-  element.classList.add('typing-text');
+  element.innerHTML = ''; element.classList.add('typing-text');
   let charIndex = 0;
-  
   function type() {
-    if (charIndex < text.length) {
-      element.textContent += text.charAt(charIndex);
-      charIndex++;
-    } else {
-      clearInterval(typingInterval);
-      setTimeout(() => {
-         element.textContent = '';
-         charIndex = 0;
-         typingInterval = setInterval(type, speed);
-      }, 2000);
-    }
+    if (charIndex < text.length) { element.textContent += text.charAt(charIndex); charIndex++; }
+    else { clearInterval(typingInterval); setTimeout(() => { element.textContent = ''; charIndex = 0; typingInterval = setInterval(type, speed); }, 2000); }
   }
   typingInterval = setInterval(type, speed);
 }
 
 // ON LOAD
 window.addEventListener('load',async()=>{
-// Load all settings from Firebase
 await loadSiteSettings();
 await loadContentSettings();
 await loadPaymentMethods();
@@ -1003,16 +950,17 @@ loadMyOrders();
 updatePlaceholderText();
 updateStatus();
 
-// Hide loading screen after everything is loaded
-const loadingScreen = document.getElementById('loadingScreen');
-if (siteSettings.showLoading === false) {
-    loadingScreen.style.display = 'none';
-} else {
-    loadingScreen.style.opacity = '0';
-    setTimeout(() => {
-      loadingScreen.style.display = 'none';
-    }, 500);
+// ব্রাউজার নোটিফিকেশন চালু করা
+initBrowserNotifications();
+
+// যদি ইউজার লগইন অবস্থায় থাকে, তাহলে অর্ডার আপডেট লিসেন করা শুরু করবে
+if(getCurrentUser()) {
+    listenForOrderUpdates();
 }
+
+const loadingScreen = document.getElementById('loadingScreen');
+if (siteSettings.showLoading === false) { loadingScreen.style.display = 'none'; }
+else { loadingScreen.style.opacity = '0'; setTimeout(() => { loadingScreen.style.display = 'none'; }, 500); }
 });
 
 document.getElementById('uCurrency').addEventListener('change', function() { updatePlaceholderText(); });
