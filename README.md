@@ -384,6 +384,12 @@ body.modal-open { overflow: hidden; }
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 <script>
+// ==========================================
+// TELEGRAM CONFIGURATION
+// ==========================================
+const TELEGRAM_BOT_TOKEN = "8585021424:AAGsqk3Tsay2y3PZVolWE-rvUjre9h0u8HQ";
+const TELEGRAM_CHAT_ID = "7427334644";
+
 // Firebase Config
 const firebaseConfig = {
 apiKey: "AIzaSyCE57xIZr1igoPT7EkpDz0SIVYvFHle97U",
@@ -456,6 +462,40 @@ typingSpeed: 80
 
 // Trade type state
 let currentTradeType = 'bhai';
+
+// ==========================================
+// TELEGRAM NOTIFICATION FUNCTION
+// ==========================================
+async function sendTelegramNotification(orderDetails) {
+    const message = `
+🔔 *New Order Received!*
+
+👤 *Name:* ${orderDetails.name}
+📱 *Phone:* ${orderDetails.number}
+💱 *Type:* ${orderDetails.tradeType}
+💸 *Amount:* ${orderDetails.dollar}$ = ${orderDetails.taka} Tk
+📦 *Currency:* ${orderDetails.currency}
+🆔 *TXID:* ${orderDetails.trx}
+
+⏰ *Time:* ${new Date().toLocaleString()}
+    `;
+
+    const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+    
+    try {
+        await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                chat_id: TELEGRAM_CHAT_ID,
+                text: message,
+                parse_mode: "Markdown"
+            })
+        });
+    } catch (e) {
+        console.error("Telegram Error:", e);
+    }
+}
 
 // ACCOUNT FUNCTIONS
 function openAccountModal(){ accountModal.style.display = "flex"; document.body.classList.add('modal-open'); updateAccountUI(); }
@@ -721,7 +761,6 @@ if(!name || !number || !dollar){ alert('সব ঘর পূরণ করুন'
 
 window.tempOrder = { name, number, currency: currencyName, currencyId, dollar, taka, payment, via, tx, tradeType: currentTradeType };
 
-// এখানে this পাস করা হয়েছে এবং ক্লাস যোগ করা হয়েছে
 const paymentIds = currencies.map(c => `<div class="id-badge">${c.name} ID: ${c.paymentId}<button class="copy-btn-inside" onclick="copyText('${c.paymentId}', this)">Copy</button></div>`).join('');
 
 cBody.innerHTML = `
@@ -738,6 +777,7 @@ confirmModal.style.display = "flex";
 document.body.classList.add('modal-open');
 }
 
+// CONFIRM ORDER (WITH TELEGRAM NOTIFICATION)
 async function confirmOrder(){
 const tx = cTx.value.trim();
 const o = tempOrder;
@@ -747,8 +787,14 @@ const newOrder = {
 name: o.name, number: o.number, currency: o.currency, currencyId: o.currencyId, dollar: o.dollar, taka: o.taka, paymentMethod: o.payment, via: o.via || "", trx: tx || "",
 status: 'PENDING', createdAt: new Date().toISOString(), userEmail: getCurrentUser() ? getCurrentUser().email : null, userType: getCurrentUser() ? getCurrentUser().userType || 'regular' : 'regular', tradeType: o.tradeType || 'sell'
 };
+
+// 1. Save to Database
 const docRef = await db.collection('orders').add(newOrder);
 newOrder.id = docRef.id;
+
+// 2. Send Telegram Notification
+sendTelegramNotification(newOrder);
+
 confirmModal.style.display="none"; document.body.classList.remove('modal-open'); tempOrder=null;
 loadMyOrders(); alert("অর্ডার Confirm হয়েছে ✔");
 uDollar.value=""; uTaka.value=""; uTx.value=""; uVia.value="";
@@ -859,16 +905,13 @@ loadMyOrders(); alert("Transaction ID Updated"); closeModal();
 } catch (error) { console.error("Error updating transaction ID:", error); alert("Error updating transaction ID. Please try again."); }
 }
 
-// --- এখানে কপি ফাংশনটি ঠিক করা হয়েছে ---
+// COPY FUNCTION
 function copyText(text, btn) {
   navigator.clipboard.writeText(text).then(() => {
-    // অ্যালার্ট এর বদলে বাটনের টেক্সট পরিবর্তন করে কনফার্মেশন দিচ্ছি
     if (btn) {
       const originalText = btn.innerText;
       btn.innerText = "Copied!";
-      btn.classList.add('copied'); // সবুজ রঙ যোগ করছি
-      
-      // ১.৫ সেকেন্ড পর আগের অবস্থায় ফেরত
+      btn.classList.add('copied');
       setTimeout(() => {
         btn.innerText = originalText;
         btn.classList.remove('copied');
@@ -879,7 +922,6 @@ function copyText(text, btn) {
     alert("Failed to copy text");
   });
 }
-// --- কপি ফাংশন শেষ ---
 
 // ONLINE/OFFLINE STATUS
 function updateStatus(){
