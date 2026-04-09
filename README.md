@@ -230,7 +230,7 @@ body.modal-open { overflow: hidden; }
 <!-- TOP BAR -->
 <div class="topbar">
 <div class="logo">
-<img id="logoImg" src="https://ibb.co.com/VpLpbjvB" alt="Logo">
+<img id="logoImg" src="<a href="https://i.ibb.co.com/bR6RYWrd/Gmail-Farmer-digital-money-transfer-logo.png" alt="Gmail-Farmer-digital-money-transfer-logo" border="0"></a>" alt="Logo">
 <div>
 <div id="siteName" style="font-size:16px;font-weight:800;color:#0037dd">Fast & Secure Exchange</div>
 <div id="siteTagline" class="small">সকাল৯ঃ০০টা থেকে রাত১০ঃ০০টা</div>
