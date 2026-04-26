@@ -207,6 +207,7 @@ body.modal-open { overflow: hidden; }
 <button class="btn-ghost" onclick="showLogin()">Back to Login</button>
 </div>
 </div>
+</div>
 
 <div id="accProfile" style="display:none">
 <div style="margin-bottom:8px"><b>Logged in as:</b></div>
