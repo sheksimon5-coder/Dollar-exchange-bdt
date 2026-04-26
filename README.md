@@ -241,7 +241,6 @@ body.modal-open { overflow: hidden; }
 <div class="top-buttons">
 <button id="myAccountBtn" onclick="openAccountModal()">My Account</button>
 </div>
-</div>
 
 <div class="blue-head">
 <h1 id="welcomeTitle">Welcome to Dollar Exchange</h1>
