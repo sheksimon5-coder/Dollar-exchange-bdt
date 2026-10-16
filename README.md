@@ -362,7 +362,7 @@ footer b{color:var(--secondary)}
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 <script>
-const TELEGRAM_BOT_TOKEN = "8585021424:AAGsqk3Tsay2y3PZVolWE-rvUjre9h0u8HQ";
+const TELEGRAM_BOT_TOKEN = "8842406650:AAESk-VLFq7qwOT2i14SuRAqWDIhNkQ7GNc";
 const TELEGRAM_CHAT_ID = "7427334644";
 
 const firebaseConfig = {
