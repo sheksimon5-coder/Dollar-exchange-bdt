@@ -92,6 +92,20 @@ body.modal-open{overflow:hidden}
 .copy-btn-inside{background-color:#e2e8f0;border:none;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:13px;transition:.2s;font-family:inherit;font-weight:600;width:auto}
 .copy-btn-inside.copied{background-color:#16a34a;color:#fff}
 
+/* ===== MY ORDERS MODAL (নতুন) ===== */
+.orders-scroll{max-height:60vh;overflow-y:auto;margin-top:12px;padding-right:4px}
+.orders-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.osum{background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:8px;text-align:center}
+.osum b{display:block;font-size:16px}
+.osum span{font-size:11.5px;color:var(--muted)}
+.mo-item{background:#f8fafc;border:1px solid var(--border);border-radius:12px;padding:11px 13px;margin:8px 0 2px;display:flex;justify-content:space-between;align-items:center;gap:10px;transition:.2s;cursor:pointer}
+.mo-item:hover{border-color:#bfdbfe;box-shadow:0 2px 10px rgba(11,117,255,.08)}
+.mo-left{flex:1;min-width:0}
+.mo-title{font-weight:700;font-size:14px}
+.mo-sub{font-size:12.5px;color:var(--muted)}
+.mo-right{text-align:right;min-width:95px}
+.od-details{background:#fff;border:1px dashed #bfdbfe;border-radius:10px;padding:12px;margin:2px 0 10px;animation:fadeIn .25s ease}
+
 /* ===== LIVE ORDERS (ট্রাস্ট ডিজাইন) ===== */
 .live-badge{display:inline-flex;align-items:center;gap:8px;background:#fee2e2;color:#dc2626;padding:7px 18px;border-radius:20px;font-weight:800;font-size:14px;animation:liveGlow 2s infinite}
 @keyframes liveGlow{0%{box-shadow:0 0 0 0 rgba(239,68,68,.45)}70%{box-shadow:0 0 0 14px rgba(239,68,68,0)}100%{box-shadow:0 0 0 0 rgba(239,68,68,0)}}
@@ -288,13 +302,8 @@ footer b{color:var(--secondary)}
 <button class="primary" onclick="placeOrder()">🚀 অর্ডার দিন</button>
 </div>
 
-<div id="myOrdersSection">
-<div class="card" style="padding:8px 18px 14px">
-<div class="card-title" style="justify-content:center">📦 আপনার অর্ডারসমূহ</div>
-<div id="myOrders"></div>
 </div>
-</div>
-</div>
+<!-- ⚠️ মেইন পেজ থেকে অর্ডার লিস্ট সরানো হয়েছে — এখন "📦 অর্ডার" বাটনে মডালে দেখা যাবে -->
 
 <!-- ===== 🔴 LIVE ORDERS (ট্রাস্ট ডিজাইন — রিয়েল-টাইম) ===== -->
 <div class="card" id="liveOrdersCard">
@@ -319,22 +328,6 @@ footer b{color:var(--secondary)}
   <div id="rulesContentText" style="white-space:pre-wrap"></div>
 </div>
 
-<!-- ORDER DETAILS MODAL -->
-<div id="modal" style="display:none;">
-<div class="modal" onclick="closeModal(event)">
-<div class="box" onclick="event.stopPropagation()">
-<h3 id="mTitle">Order Details</h3>
-<div id="mBody"></div>
-<div style="margin-top:12px">
-<label>ট্রানজেকশন আইডি</label>
-<input id="mTx" placeholder="ট্রানজেকশন আইডি দিন">
-<button class="primary" style="margin-top:10px" onclick="saveTx()">💾 সংরক্ষণ</button>
-</div>
-<div style="margin-top:12px;text-align:right"><button class="btn-ghost" onclick="closeModal()">Close</button></div>
-</div>
-</div>
-</div>
-
 <!-- CONFIRM ORDER MODAL -->
 <div id="confirmModal" style="display:none;">
 <div class="modal" onclick="closeConfirm(event)">
@@ -349,7 +342,21 @@ footer b{color:var(--secondary)}
 </div>
 </div>
 
-<!-- WhatsApp Button (ছবি Admin Panel থেকে বদলানো যাবে) -->
+<!-- ===== 📦 MY ORDERS MODAL (নতুন) ===== -->
+<div id="myOrdersModal" style="display:none;">
+  <div class="modal" onclick="closeMyOrdersModal(event)">
+    <div class="box" onclick="event.stopPropagation()">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+        <h3 style="margin:0">📦 আপনার অর্ডারসমূহ</h3>
+        <button class="btn-ghost" style="padding:6px 14px" onclick="closeMyOrdersModal()">✕ বন্ধ</button>
+      </div>
+      <div id="myOrdersSummary" class="orders-summary"></div>
+      <div id="myOrders" class="orders-scroll"></div>
+    </div>
+  </div>
+</div>
+
+<!-- WhatsApp Button -->
 <a id="whatsappLink" href="https://wa.me/qr/DTBEJ472LPKOA1" class="wa-btn" target="_blank">
 <img id="whatsappImg" src="https://i.ibb.co/dnLD0Wf/20251129-064417.jpg" alt="wa">
 </a>
@@ -377,7 +384,6 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-const modal = document.getElementById('modal');
 const confirmModal = document.getElementById('confirmModal');
 const accountModal = document.getElementById('accountModal');
 
@@ -390,6 +396,9 @@ let currencies = [
 let paymentMethods = [];
 let quotes = [];
 let quoteTimer = null;
+let _pendingOrder = null;
+let _myOrdersCache = [];
+let _myOrdersShown = 10;
 
 let siteSettings = {
 name: 'Fast & Secure Exchange', tagline: 'সকাল৯ঃ০০টা থেকে রাত১০ঃ০০টা', primaryColor: '#0b75ff', secondaryColor: '#0037dd',
@@ -414,7 +423,7 @@ let currentTradeType = 'bhai';
 function escapeHtml(v){ return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 // ==========================================
-// ✅ COPY SYSTEM (সম্পূর্ণ ফিক্স — HTTPS ছাড়াও কাজ করবে)
+// ✅ COPY SYSTEM
 // ==========================================
 function fallbackCopy(str, onSuccess){
   try{
@@ -436,7 +445,6 @@ function doCopy(str, onSuccess){
     navigator.clipboard.writeText(str).then(onSuccess).catch(() => fallbackCopy(str, onSuccess));
   } else { fallbackCopy(str, onSuccess); }
 }
-// সব [data-copy] বাটনে এক ক্লিক লিসেনার — কোথাও বসালেই কাজ করবে
 document.addEventListener('click', function(e){
   const btn = e.target.closest('[data-copy]');
   if(!btn) return;
@@ -455,7 +463,7 @@ function scrollToSection(id){
   const el = document.getElementById(id);
   if(el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
-function goMyOrders(){ loadMyOrders(); scrollToSection('myOrdersSection'); }
+function showUser(){ scrollToSection('userArea'); }
 function goLiveOrders(){ scrollToSection('liveOrdersCard'); }
 
 // ডলার পাঠানোর আইডি বক্স
@@ -469,8 +477,17 @@ function updatePayInfo(){
   } else { box.style.display = 'none'; }
 }
 
+function updatePlaceholderText(){
+  const currency = currencies.find(c => c.id === uCurrency.value);
+  if(currency){
+    uDollar.placeholder = `কত ডলার ${currentTradeType === 'bhai' ? 'কিনবেন' : 'বিক্রি করবেন'} (min ${currency.minDollar} - max ${currency.maxDollar})`;
+  }
+  updatePayInfo();
+  calc();
+}
+
 // ==========================================
-// ব্রাউজার নোটিফিকেশন (ইউজারের জন্য)
+// ব্রাউজার নোটিফিকেশন
 // ==========================================
 function initBrowserNotifications() {
     if (!("Notification" in window)) { return; }
@@ -484,7 +501,7 @@ function showUserNotification(title, body) {
     if (Notification.permission === "granted") {
         new Notification(title, {
             body: body,
-            icon: siteSettings.logoUrl || 'https://i.ibb.co.com/DD3h4qjv/file-000000007d947207b10fa3593fc67aa8.png',
+            icon: siteSettings.logoUrl || '',
             vibrate: [200, 100, 200],
             tag: "order-status-update"
         });
@@ -513,7 +530,7 @@ function listenForOrderUpdates() {
 }
 
 // ==========================================
-// 🔴 LIVE ORDERS + ট্রাস্ট স্ট্যাটস (রিয়েল-টাইম)
+// 🔴 LIVE ORDERS + ট্রাস্ট স্ট্যাটস
 // ==========================================
 let liveOrdersPrevIds = new Set();
 
@@ -541,10 +558,17 @@ function maskNumber(num){
     return s.slice(0, 3) + '****' + s.slice(-4);
 }
 
+function getBanglaStatus(status){
+  const s = String(status || 'PENDING').toUpperCase();
+  if(s === 'COMPLETED') return { text: 'সম্পন্ন', cls: 'completed' };
+  if(s === 'REJECTED') return { text: 'বাতিল', cls: 'rejected' };
+  return { text: 'পেন্ডিং', cls: 'pending' };
+}
+
 function initLiveOrders(){
     db.collection('orders').orderBy('createdAt', 'desc').limit(10).onSnapshot(snapshot => {
         renderLiveOrders(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
-        loadTrustStats(); // স্ট্যাটস আপডেট রাখে
+        loadTrustStats();
     }, err => {
         console.error("Live orders error:", err);
         db.collection('orders').onSnapshot(snapshot => {
@@ -560,7 +584,6 @@ function initLiveOrders(){
     });
 }
 
-// ট্রাস্ট স্ট্যাটস: মোট সম্পন্ন, সাকসেস রেট, মোট USD
 async function loadTrustStats(){
   try{
     const snap = await db.collection('orders').get();
@@ -607,7 +630,7 @@ function renderLiveOrders(orders){
     liveOrdersPrevIds = new Set(orders.map(o => o.id));
 }
 
-// TELEGRAM (ADMIN) — অর্ডার হলেই টেলিগ্রামে যাবে (২৪/৭)
+// TELEGRAM (ADMIN)
 async function sendTelegramNotification(orderDetails) {
     const message = `
 🔔 *New Order Received!*
@@ -632,7 +655,181 @@ async function sendTelegramNotification(orderDetails) {
     } catch (e) { console.error("Telegram Error:", e); }
 }
 
+// ==========================================
+// 📦 MY ORDERS (মডাল ভার্সন)
+// ==========================================
+function goMyOrders(){ openMyOrdersModal(); }
+
+function openMyOrdersModal(){
+  document.getElementById('myOrdersModal').style.display = 'flex';
+  document.body.classList.add('modal-open');
+  _myOrdersShown = 10;
+  loadMyOrders();
+}
+
+function closeMyOrdersModal(e){
+  if(e && e.target !== e.currentTarget) return;
+  document.getElementById('myOrdersModal').style.display = 'none';
+  document.body.classList.remove('modal-open');
+}
+
+async function loadMyOrders(){
+  const container = document.getElementById('myOrders');
+  const summaryEl = document.getElementById('myOrdersSummary');
+  if(!container) return;
+  const u = getCurrentUser();
+  if(!u){
+    if(summaryEl) summaryEl.innerHTML = '';
+    container.innerHTML = '<div class="order-empty">🔐 আপনার অর্ডার দেখতে প্রথমে <b>My Account</b> থেকে লগইন করুন</div>';
+    return;
+  }
+  container.innerHTML = '<div class="order-empty">লোড হচ্ছে...</div>';
+  if(summaryEl) summaryEl.innerHTML = '';
+  try{
+    const snap = await db.collection('orders').where('userEmail','==',u.email).get();
+    let orders = snap.docs.map(d => ({ id:d.id, ...d.data() }));
+    orders.sort((a,b) => new Date(b.createdAt||0) - new Date(a.createdAt||0));
+    _myOrdersCache = orders;
+
+    const completed = orders.filter(o => String(o.status||'').toUpperCase()==='COMPLETED').length;
+    const pending = orders.filter(o => String(o.status||'').toUpperCase()==='PENDING').length;
+    if(summaryEl){
+      summaryEl.innerHTML = `
+        <div class="osum"><b>${orders.length}</b><span>মোট অর্ডার</span></div>
+        <div class="osum"><b style="color:#16a34a">${completed}</b><span>সম্পন্ন</span></div>
+        <div class="osum"><b style="color:#f59e0b">${pending}</b><span>চলমান</span></div>`;
+    }
+
+    if(!orders.length){
+      container.innerHTML = '<div class="order-empty">এখনো কোনো অর্ডার নেই — প্রথম অর্ডারটি দিন! 🚀</div>';
+      return;
+    }
+    renderMyOrdersPage();
+  }catch(e){
+    console.error('loadMyOrders error:', e);
+    container.innerHTML = '<div class="order-empty">অর্ডার লোড করা যায়নি ❌</div>';
+  }
+}
+
+function renderMyOrdersPage(){
+  const container = document.getElementById('myOrders');
+  const slice = _myOrdersCache.slice(0, _myOrdersShown);
+  container.innerHTML = slice.map(o => {
+    const s = getBanglaStatus(o.status);
+    const ago = o.createdAt ? timeAgo(o.createdAt) : '';
+    return `
+    <div class="mo-item" onclick="toggleOrderDetails('${o.id}')">
+      <div class="mo-left">
+        <div class="mo-title">💱 ${escapeHtml(o.currency||'—')} • ${escapeHtml(String(o.dollar??''))}$ → ${escapeHtml(String(o.taka??''))} Tk</div>
+        <div class="mo-sub">💳 ${escapeHtml(o.paymentMethod||'—')} • 🕘 ${escapeHtml(ago)}</div>
+      </div>
+      <div class="mo-right"><span class="status ${s.cls}">${s.text}</span></div>
+    </div>
+    <div id="od-${o.id}" class="od-details" style="display:none">
+      <div class="small"><b>নাম:</b> ${escapeHtml(o.name||'—')}</div>
+      <div class="small"><b>নম্বর:</b> ${escapeHtml(o.number||'—')}</div>
+      <div class="small"><b>ধরন:</b> ${escapeHtml(o.tradeType||'—')}</div>
+      <div class="small"><b>সময়:</b> ${o.createdAt ? escapeHtml(new Date(o.createdAt).toLocaleString()) : '—'}</div>
+      <label style="margin-top:8px">ট্রানজেকশন আইডি</label>
+      <input id="tx-${o.id}" value="${escapeHtml(o.trx||'')}" placeholder="TXID লিখুন" />
+      <button class="primary" style="margin-top:8px;padding:10px;font-size:14px" onclick="saveOrderTx('${o.id}')">💾 TXID সংরক্ষণ</button>
+    </div>`;
+  }).join('') + (_myOrdersCache.length > _myOrdersShown
+    ? `<button class="btn-ghost" style="width:100%;margin-top:8px" onclick="_myOrdersShown += 10; renderMyOrdersPage();">⬇ আরও দেখুন (${_myOrdersCache.length - _myOrdersShown} টি বাকি)</button>`
+    : '');
+}
+
+function toggleOrderDetails(id){
+  const el = document.getElementById('od-' + id);
+  if(el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+async function saveOrderTx(id){
+  const input = document.getElementById('tx-' + id);
+  const trx = input ? input.value.trim() : '';
+  if(!trx){ alert('ট্রানজেকশন আইডি লিখুন'); return; }
+  try{
+    await db.collection('orders').doc(id).update({ trx });
+    alert('TXID সংরক্ষণ হয়েছে ✔');
+    loadMyOrders();
+  }catch(e){
+    console.error(e);
+    alert('সংরক্ষণ ব্যর্থ ❌');
+  }
+}
+
+// ==========================================
+// 💱 অর্ডার প্লেস + কনফার্ম
+// ==========================================
+function placeOrder(){
+  const u = getCurrentUser();
+  if(siteSettings.requireLogin && !u){ alert('অর্ডার দিতে প্রথমে লগইন করুন'); openAccountModal(); return; }
+  const name = uName.value.trim();
+  const currency = currencies.find(c => c.id === uCurrency.value);
+  const dollar = Number(uDollar.value) || 0;
+  const taka = Number(uTaka.value) || 0;
+  const number = uNumber.value.trim();
+  if(!name){ alert('আপনার নাম লিখুন'); return; }
+  if(!currency){ alert('কারেন্সি সিলেক্ট করুন'); return; }
+  if(!dollar || dollar <= 0){ alert('সঠিক ডলার পরিমাণ লিখুন'); return; }
+  const minD = currency.minDollar || siteSettings.minDollarAmount || 1;
+  const maxD = currency.maxDollar || siteSettings.maxDollarAmount || 1000;
+  if(dollar < minD){ alert(`সর্বনিম্ন ${minD} ডলার অর্ডার করা যাবে`); return; }
+  if(dollar > maxD){ alert(`সর্বোচ্চ ${maxD} ডলার অর্ডার করা যাবে`); return; }
+  if(!number){ alert('আপনার পেমেন্ট নম্বর লিখুন'); return; }
+  _pendingOrder = {
+    name, dollar, taka, currency: currency.name,
+    paymentMethod: document.getElementById('uPayment').value,
+    number, trx: uTx.value.trim(),
+    tradeType: currentTradeType === 'bhai' ? 'BUY' : 'SELL',
+    status: 'PENDING',
+    userEmail: u ? u.email : '',
+    createdAt: new Date().toISOString()
+  };
+  showConfirmModal();
+}
+
+function showConfirmModal(){
+  const o = _pendingOrder;
+  document.getElementById('cBody').innerHTML = `
+    <div class="id-badge"><b>নাম:</b> ${escapeHtml(o.name)}</div>
+    <div class="id-badge"><b>কারেন্সি:</b> ${escapeHtml(o.currency)} (${escapeHtml(o.tradeType)})</div>
+    <div class="id-badge"><b>পরিমাণ:</b> ${escapeHtml(String(o.dollar))}$ = ${escapeHtml(String(o.taka))} Tk</div>
+    <div class="id-badge"><b>মাধ্যম:</b> ${escapeHtml(o.paymentMethod)} — ${escapeHtml(o.number)}</div>`;
+  confirmModal.style.display = 'flex';
+  document.body.classList.add('modal-open');
+}
+
+function closeConfirm(e){
+  if(e && e.target !== e.currentTarget) return;
+  confirmModal.style.display = 'none';
+  document.body.classList.remove('modal-open');
+}
+
+async function confirmOrder(){
+  const tx = document.getElementById('cTx').value.trim();
+  if(!tx){ alert('Transaction ID লিখুন'); return; }
+  const o = _pendingOrder;
+  if(!o) return;
+  o.trx = tx;
+  try{
+    await db.collection('orders').add(o);
+    confirmModal.style.display = 'none';
+    document.body.classList.remove('modal-open');
+    document.getElementById('cTx').value = '';
+    sendTelegramNotification(o);
+    alert('✅ আপনার অর্ডার সফলভাবে জমা হয়েছে!');
+    uDollar.value = ''; uTx.value = ''; calc();
+    if(getCurrentUser()) openMyOrdersModal();
+  }catch(e){
+    console.error(e);
+    alert('অর্ডার জমা ব্যর্থ হয়েছে, আবার চেষ্টা করুন');
+  }
+}
+
+// ==========================================
 // ACCOUNT FUNCTIONS
+// ==========================================
 function openAccountModal(){ accountModal.style.display = "flex"; document.body.classList.add('modal-open'); updateAccountUI(); }
 function closeAccountModal(){ accountModal.style.display = "none"; document.body.classList.remove('modal-open'); }
 function showSignup(){ loginForm.style.display='none'; signupForm.style.display='block'; fisherForm.style.display='none'; forgotPasswordForm.style.display='none'; accProfile.style.display='none'; accTitle.innerText = 'Sign Up'; }
@@ -740,7 +937,9 @@ showLogin();
 } catch (error) { console.error("Error resetting password:", error); alert("Error resetting password. Please try again."); }
 }
 
+// ==========================================
 // LOAD SETTINGS
+// ==========================================
 async function loadSiteSettings() {
 try {
 const settingsDoc = await db.collection('settings').doc('site').get();
@@ -802,7 +1001,6 @@ if (siteSettings.faviconUrl) { document.getElementById('favicon').href = siteSet
 if (siteSettings.logoUrl) { document.getElementById('logoImg').src = siteSettings.logoUrl; }
 document.getElementById('siteName').textContent = siteSettings.name;
 document.getElementById('footerName').textContent = siteSettings.name;
-// ✅ WhatsApp লিংক + বাটনের ছবি (Admin Panel থেকে বদলানো যায়)
 if (siteSettings.whatsappLink) { document.getElementById('whatsappLink').href = siteSettings.whatsappLink; }
 if (siteSettings.whatsappImageUrl) { document.getElementById('whatsappImg').src = siteSettings.whatsappImageUrl; }
 const wh = getWorkHours();
@@ -843,6 +1041,18 @@ document.getElementById('rulesContentText').textContent = contentSettings.rulesC
 if (contentSettings.typingText) {
    startTypingAnimation(contentSettings.typingText, contentSettings.typingSpeed || 80);
 }
+}
+
+function startTypingAnimation(text, speed){
+const el = document.getElementById('welcomeSubtitle');
+if(!el) return;
+let i = 0;
+el.innerHTML = '<span class="typing-text"></span>';
+const span = el.querySelector('.typing-text');
+const timer = setInterval(() => {
+span.textContent = text.slice(0, ++i);
+if(i >= text.length) clearInterval(timer);
+}, speed);
 }
 
 function applyAnimationSettings() {
@@ -914,6 +1124,7 @@ uCurrency.appendChild(option);
 });
 if (uDollar.value) { calc(); }
 updatePayInfo();
+updatePlaceholderText();
 }
 
 function setTradeType(type) {
@@ -929,248 +1140,53 @@ const currencyId = uCurrency.value;
 const currency = currencies.find(c => c.id === currencyId);
 const rate = currency ? (currentTradeType === 'bhai' ? (currency.buyRate || currency.rate) : (currency.sellRate || currency.rate)) : 0;
 const taka = dollar * rate;
-uTaka.value = taka.toFixed(2);
+uTaka.value = taka ? taka.toFixed(2) : '';
+const feeInfo = document.getElementById('feeInfo');
 if (siteSettings.transactionFee > 0 || siteSettings.transactionFeePercent > 0) {
 const feeFixed = siteSettings.transactionFee || 0;
 const feePercent = siteSettings.transactionFeePercent || 0;
 const feeAmount = feeFixed + (taka * feePercent / 100);
 const total = taka + feeAmount;
-document.getElementById('feeInfo').style.display = 'block';
+feeInfo.style.display = 'block';
 document.getElementById('transactionFeeAmount').textContent = feeAmount.toFixed(2);
 document.getElementById('transactionFeePercent').textContent = feePercent;
 document.getElementById('totalAmount').textContent = total.toFixed(2);
-} else { document.getElementById('feeInfo').style.display = 'none'; }
+} else { feeInfo.style.display = 'none'; }
 }
 
-function updatePlaceholderText() {
-const currencyId = uCurrency.value;
-const currency = currencies.find(c => c.id === currencyId);
-calc();
-updatePayInfo();
-if (currency) {
-const minLimit = currency.minDollar || siteSettings.minDollarAmount;
-const maxLimit = currency.maxDollar || siteSettings.maxDollarAmount;
-uDollar.placeholder = `কত ডলার সেল দিবেন (${minLimit} থেকে ${maxLimit} ডলার পর্যন্ত)`;
-} else { uDollar.placeholder = `কত ডলার সেল দিবেন (minimum ${siteSettings.minDollarAmount} dollar)`; }
-}
-
-function placeOrder(){
-const current = getCurrentUser();
-if(siteSettings.requireLogin && !current){ alert('অর্ডার দিতে হলে প্রথমে Login/Sign Up করুন'); openAccountModal(); return; }
-const name = (uName.value.trim() || current?.name);
-const number = (uNumber.value.trim() || current?.number);
-const currencyId = uCurrency.value;
-const currency = currencies.find(c => c.id === currencyId);
-const currencyName = currency ? currency.name : '';
-const dollar = parseFloat(uDollar.value);
-const taka = uTaka.value;
-const payment = uPayment.value;
-const tx = uTx.value.trim() || "";
-
-if (currency) {
-const minLimit = currency.minDollar || siteSettings.minDollarAmount;
-const maxLimit = currency.maxDollar || siteSettings.maxDollarAmount;
-if (dollar < minLimit) { alert(`${currencyName} এর জন্য সর্বনিম্ন ${minLimit} ডলার হতে হবে`); return; }
-if (dollar > maxLimit) { alert(`${currencyName} এর জন্য সর্বোচ্চ ${maxLimit} ডলার হতে হবে`); return; }
-} else {
-if (dollar < siteSettings.minDollarAmount) { alert(`Minimum dollar amount is ${siteSettings.minDollarAmount}`); return; }
-if (dollar > siteSettings.maxDollarAmount) { alert(`Maximum dollar amount is ${siteSettings.maxDollarAmount}`); return; }
-}
-
-if(!name || !number || !dollar){ alert('সব ঘর পূরণ করুন'); return; }
-
-window.tempOrder = { name, number, currency: currencyName, currencyId, dollar, taka, payment, via: payment, tx, tradeType: currentTradeType };
-
-const paymentIds = currencies.map(c => `<div class="id-badge">${escapeHtml(c.name)} ID: ${escapeHtml(c.paymentId)} <button class="copy-btn-inside" style="float:right" data-copy="${escapeHtml(c.paymentId)}">📋 Copy</button></div>`).join('');
-
-cBody.innerHTML = `
-<div>নাম: <b>${escapeHtml(name)}</b></div>
-<div>নম্বার: <b>${escapeHtml(number)}</b></div>
-<div>কারেন্সি: <b>${escapeHtml(currencyName)}</b></div>
-<div>ডলার: <b>${escapeHtml(dollar)}</b> → টাকা: <b>${escapeHtml(taka)}</b></div>
-<div>মাধ্যম: <b>${escapeHtml(payment)}</b></div>
-<div>Trade Type: <b>${currentTradeType === 'bhai' ? 'Bhai Rate' : 'Sale Rate'}</b></div>
-<div style="margin-top:10px;font-weight:700">পেমেন্ট পাঠানোর আইডি:</div>
- ${paymentIds}
-`;
-cTx.value = tx;
-confirmModal.style.display = "flex";
-document.body.classList.add('modal-open');
-}
-
-async function confirmOrder(){
-const tx = cTx.value.trim();
-const o = tempOrder;
-if(!o) return;
-try {
-const newOrder = {
-name: o.name, number: o.number, currency: o.currency, currencyId: o.currencyId, dollar: o.dollar, taka: o.taka, paymentMethod: o.payment, via: o.via || "", trx: tx || "",
-status: 'PENDING', createdAt: new Date().toISOString(), userEmail: getCurrentUser() ? getCurrentUser().email : null, userType: getCurrentUser() ? getCurrentUser().userType || 'regular' : 'regular', tradeType: o.tradeType || 'sell',
-telegramSent: true
-};
-const docRef = await db.collection('orders').add(newOrder);
-newOrder.id = docRef.id;
-sendTelegramNotification(newOrder);
-confirmModal.style.display="none"; document.body.classList.remove('modal-open'); tempOrder=null;
-loadMyOrders(); alert("অর্ডার Confirm হয়েছে ✔");
-uDollar.value=""; uTaka.value=""; uTx.value="";
-} catch (error) { console.error("Error creating order:", error); alert("Error creating order. Please try again."); }
-}
-
-function getBanglaStatus(status){
-if(status === "COMPLETED") return { text: "✔ completed", cls: "completed" };
-if(status === "REJECTED") return { text: "✘ বাতিল", cls: "rejected" };
-return { text: "⌛ অপেক্ষমাণ", cls: "pending" };
-}
-
-async function loadMyOrders(){
-try {
-const current = getCurrentUser();
-myOrders.innerHTML = "";
-if(current){
-const emailSnapshot = await db.collection('orders').where('userEmail', '==', current.email).get();
-const numberSnapshot = await db.collection('orders').where('number', '==', current.number).get();
-const allOrders = emailSnapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
-numberSnapshot.docs.forEach(doc => { const d = {id: doc.id, ...doc.data()}; if (!allOrders.find(o => o.id === d.id)) { allOrders.push(d); } });
-allOrders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-renderOrders(allOrders);
-} else {
-const number = uNumber.value.trim();
-if(number) {
-const numberSnapshot = await db.collection('orders').where('number', '==', number).get();
-const orders = numberSnapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
-orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-renderOrders(orders);
-} else { myOrders.innerHTML='<div class="order-empty">আপনার অর্ডার নেই</div>'; }
-}
-} catch (error) { console.error("Error loading orders:", error); myOrders.innerHTML='<div class="order-empty">Error loading orders</div>'; }
-}
-
-function renderOrders(orders) {
-if(orders.length===0){ myOrders.innerHTML='<div class="order-empty">আপনার অর্ডার নেই</div>'; return; }
-orders.forEach(o=>{
-let currencyName = o.currency;
-if (!currencyName && o.currencyId) { const currency = currencies.find(c => c.id === o.currencyId); currencyName = currency ? currency.name : o.currencyId; }
-const s = getBanglaStatus(o.status);
-const box=document.createElement('div');
-box.className='order-box';
-box.innerHTML=`
-<div class="order-info">
-<div><b>${escapeHtml(o.name)}</b> <span class="small">• ${new Date(o.createdAt).toLocaleString()}</span></div>
-<div class="small">${escapeHtml(currencyName)} • ${escapeHtml(String(o.dollar))} USD → ${escapeHtml(String(o.taka))} TK</div>
-<div class="small">মাধ্যম: ${escapeHtml(o.paymentMethod || o.via || 'Not given')}</div>
-<div class="small">TXID: ${escapeHtml(o.trx || 'Not given')}</div>
-<div class="small">Trade Type: ${o.tradeType === 'bhai' ? 'Bhai Rate' : 'Sale Rate'}</div>
-</div>
-<div class="order-meta">
-<div><span class="status ${s.cls}">${s.text}</span></div>
-<button class="btn-ghost" style="margin-top:8px;width:100%" onclick="openModal('${o.id}')">View</button>
-</div>
-`;
-myOrders.appendChild(box);
-});
-}
-
-let currentModalId=null;
-async function openModal(id){
-currentModalId=id;
-try {
-const orderDoc = await db.collection('orders').doc(id).get();
-if (!orderDoc.exists) return;
-const o = {id: orderDoc.id, ...orderDoc.data()};
-let currencyName = o.currency;
-if (!currencyName && o.currencyId) { const currency = currencies.find(c => c.id === o.currencyId); currencyName = currency ? currency.name : o.currencyId; }
-mTitle.innerText="Order — "+o.name;
-mBody.innerHTML=`
-<div class="small">Created: ${new Date(o.createdAt).toLocaleString()}</div>
-<div>নাম: <b>${escapeHtml(o.name)}</b></div>
-<div>নম্বার: <b>${escapeHtml(o.number)}</b></div>
-<div>কারেন্সি: <b>${escapeHtml(currencyName)}</b></div>
-<div>ডলার: <b>${escapeHtml(String(o.dollar))}</b> → টাকা: <b>${escapeHtml(String(o.taka))}</b></div>
-<div>মাধ্যম: <b>${escapeHtml(o.paymentMethod || o.via || 'Not given')}</b></div>
-<div>Trade Type: <b>${o.tradeType === 'bhai' ? 'Bhai Rate' : 'Sale Rate'}</b></div>
-<div style="margin-top:8px">বর্তমান স্ট্যাটাস: <b>${escapeHtml(o.status)}</b></div>
-`;
-mTx.value = o.trx || "";
-modal.style.display="flex";
-document.body.classList.add('modal-open');
-} catch (error) { console.error("Error opening order:", error); alert("Error loading order details"); }
-}
-
-function closeModal(event){
-if (!event || event.target === modal || event.target.textContent === 'Close') { modal.style.display='none'; document.body.classList.remove('modal-open'); currentModalId=null; }
-}
-
-function closeConfirm(event){
-if (!event || event.target === confirmModal || event.target.textContent === 'Close') { confirmModal.style.display='none'; document.body.classList.remove('modal-open'); }
-}
-
-async function saveTx(){
-if(!currentModalId) return;
-const tx = mTx.value.trim();
-try {
-await db.collection('orders').doc(currentModalId).update({ trx: tx });
-loadMyOrders(); alert("Transaction ID Updated"); closeModal();
-} catch (error) { console.error("Error updating transaction ID:", error); alert("Error updating transaction ID. Please try again."); }
-}
-
-function updateStatus(){
-  let isOnline = false;
-  const now = new Date();
-  const nowTotalMinutes = now.getHours() * 60 + now.getMinutes();
-  if (siteSettings.statusOverrideEnabled) { isOnline = String(siteSettings.statusOverride) === 'online'; }
-  else if (siteSettings.statusOverride === 'online') { isOnline = true; }
-  else if (siteSettings.statusOverride === 'offline') { isOnline = false; }
-  else {
+// ==========================================
+// INIT
+// ==========================================
+window.addEventListener('load', async () => {
+  try{
+    await loadSiteSettings();
+    await loadContentSettings();
+    await loadAnimationSettings();
+    await loadQuotes();
+    await loadPaymentMethods();
+    await loadCurrencies();
+    updatePlaceholderText();
+    updateAccountUI();
+    prefillUserFields();
+    initLiveOrders();
+    initBrowserNotifications();
+    listenForOrderUpdates();
+    document.getElementById('footerYear').textContent = new Date().getFullYear();
+    // অনলাইন/অফলাইন স্ট্যাটাস
     const wh = getWorkHours();
-    if (wh.endMinutes > wh.startMinutes) { isOnline = nowTotalMinutes >= wh.startMinutes && nowTotalMinutes < wh.endMinutes; }
-    else { isOnline = nowTotalMinutes >= wh.startMinutes || nowTotalMinutes < wh.endMinutes; }
+    const now = new Date();
+    const mins = now.getHours() * 60 + now.getMinutes();
+    const isWorkTime = mins >= wh.startMinutes && mins < wh.endMinutes;
+    const opStatus = document.getElementById('opStatus');
+    if(isWorkTime){ opStatus.textContent = 'Online'; opStatus.className = 'status-badge online'; }
+    else { opStatus.textContent = 'Offline'; opStatus.className = 'status-badge offline'; }
+  }catch(e){ console.error("Init error:", e); }
+  finally {
+    // লোডিং স্ক্রিন লুকান
+    const ls = document.getElementById('loadingScreen');
+    setTimeout(() => { ls.style.opacity = '0'; setTimeout(() => ls.style.display = 'none', 500); }, 500);
   }
-  if(isOnline){ opStatus.innerText='Online'; opStatus.className='status-badge online'; }
-  else { opStatus.innerText='Offline'; opStatus.className='status-badge offline'; }
-}
-setInterval(updateStatus, 60000);
-function showUser(){ userArea.style.display='block'; scrollToSection('userArea'); }
-
-let typingInterval;
-function startTypingAnimation(text, speed) {
-  const element = document.getElementById('welcomeSubtitle');
-  if (!element || !text) return;
-  if (typingInterval) clearInterval(typingInterval);
-  element.innerHTML = ''; element.classList.add('typing-text');
-  let charIndex = 0;
-  function type() {
-    if (charIndex < text.length) { element.textContent += text.charAt(charIndex); charIndex++; }
-    else { clearInterval(typingInterval); setTimeout(() => { element.textContent = ''; charIndex = 0; typingInterval = setInterval(type, speed); }, 2000); }
-  }
-  typingInterval = setInterval(type, speed);
-}
-
-window.addEventListener('load',async()=>{
-await loadSiteSettings();
-await loadContentSettings();
-await loadAnimationSettings();
-await loadPaymentMethods();
-await loadCurrencies();
-await loadQuotes();
-updateAccountUI();
-prefillUserFields();
-loadMyOrders();
-initLiveOrders();
-updatePlaceholderText();
-updateStatus();
-document.getElementById('footerYear').textContent = new Date().getFullYear();
-
-initBrowserNotifications();
-
-if(getCurrentUser()) { listenForOrderUpdates(); }
-
-const loadingScreen = document.getElementById('loadingScreen');
-if (siteSettings.showLoading === false || animationSettings.showLoadingAll === false) { loadingScreen.style.display = 'none'; }
-else { loadingScreen.style.opacity = '0'; setTimeout(() => { loadingScreen.style.display = 'none'; }, 500); }
 });
-
-document.getElementById('uCurrency').addEventListener('change', function() { updatePlaceholderText(); });
 </script>
 </body>
 </html>
